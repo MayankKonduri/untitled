@@ -1,166 +1,170 @@
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
-import java.awt.image.BufferedImage;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.sql.*;
 
 public class MyJDBC extends JPanel {
+    private JFrame frame;
+    private JTextField usernameField;
+    private JComboBox<String> roleDropdown;
+    private JButton registerButton;
+    private String userName;
 
-    public JFrame frame = new JFrame("Database Operation Results");
-    public JTextArea textArea = new JTextArea();
-
-    public MyJDBC(JFrame frame){
-        createGUI();
-
-        String userName = System.getProperty("user.name");
-
-        try {
-            Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://192.168.1.104:3306/setup",
-                    "root",
-                    "password"
-            );
-
-            String checkLoginIdQuery = "SELECT COUNT(*) AS count FROM setup.login_id_initial WHERE login_id = ?";
-            try (PreparedStatement checkStatement = connection.prepareStatement(checkLoginIdQuery)) {
-                checkStatement.setString(1, userName);
-                ResultSet checkResult = checkStatement.executeQuery();
-
-                if (checkResult.next()) {
-                    int count = checkResult.getInt("count");
-                    if (count > 0) {
-                        String fetchUsernameQuery = "SELECT username, role FROM setup.login_id_initial WHERE login_id = ?";
-                        try (PreparedStatement fetchStatement = connection.prepareStatement(fetchUsernameQuery)) {
-                            fetchStatement.setString(1, userName);
-                            ResultSet fetchResult = fetchStatement.executeQuery();
-                            if (fetchResult.next()) {
-                                String registeredUsername = fetchResult.getString("username");
-                                String role = fetchResult.getString("role");
-                                textArea.append("Hello! " + registeredUsername + ", you are already registered with login_id: " + userName + " as a " + role + ".\n");
-                            }
-                        }
-                    } else {
-                        textArea.append("Login ID " + userName + " is not registered. Adding it now.\n");
-                        String desiredUsername = JOptionPane.showInputDialog(frame, "Enter your desired Username:");
-
-                        String[] roles = {"Teacher", "Student"};
-                        String selectedRole = (String) JOptionPane.showInputDialog(frame,
-                                "Select your role:",
-                                "Role Selection",
-                                JOptionPane.QUESTION_MESSAGE,
-                                null,
-                                roles,
-                                roles[0]);
-
-                        if (selectedRole != null) {
-                            String insertLoginIdQuery = "INSERT INTO setup.login_id_initial (login_id, username, role) VALUES (?, ?, ?)";
-                            try (PreparedStatement insertStatement = connection.prepareStatement(insertLoginIdQuery)) {
-                                insertStatement.setString(1, userName);
-                                insertStatement.setString(2, desiredUsername);
-                                insertStatement.setString(3, selectedRole);
-                                int rowsInserted = insertStatement.executeUpdate();
-
-                                if (rowsInserted > 0) {
-                                    textArea.append("Login ID " + userName + " with Username " + desiredUsername + " and Role " + selectedRole + " successfully added.\n");
-                                } else {
-                                    textArea.append("Failed to add Login ID " + userName + " with Username and Role.\n");
-                                }
-                            }
-                        } else {
-                            textArea.append("Role selection was canceled. No data was added.\n");
-                        }
-                    }
-                }
-            } catch (SQLException e) {
-                textArea.append("Error during username check: " + e.getMessage() + "\n");
-                e.printStackTrace();
-            }
-
-            textArea.append("Data in the login_id_initial table:\n");
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT * FROM setup.login_id_initial");
-            while (resultSet.next()) {
-                textArea.append("Login ID: " + resultSet.getString("login_id") +
-                        ", Username: " + resultSet.getString("username") +
-                        ", Role: " + resultSet.getString("role") + "\n");
-            }
-
-        } catch (SQLException e) {
-            textArea.append("Error connecting to the database: " + e.getMessage() + "\n");
-            e.printStackTrace();
-        }
+    public MyJDBC(JFrame frame) {
+        this.frame = frame;
+        userName = System.getProperty("user.name");
+        checkIfRegistered();
     }
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("Database Operation Results");
+            JFrame frame = new JFrame("Question-Client");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setResizable(false);
+            frame.setSize(500, 300);
             new MyJDBC(frame);
         });
     }
 
-    public void createGUI() {
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        frame.setSize(700, 400);
+    private void checkIfRegistered() {
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://192.168.1.104:3306/setup", "root", "password")) {
 
-        textArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(textArea);
-
-        frame.add(scrollPane, BorderLayout.CENTER);
-        frame.setVisible(true);
-
-        frame.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                minimizeToTray(frame);
-            }
-        });
-    }
-
-    public static void minimizeToTray(JFrame frame) {
-        if (!SystemTray.isSupported()) {
-            System.out.println("System Tray not supported");
-            return;
-        }
-
-        frame.setExtendedState(JFrame.ICONIFIED);
-        frame.setVisible(false);
-
-        SystemTray systemTray = SystemTray.getSystemTray();
-        TrayIcon trayIcon = createDefaultTrayIcon();
-        try {
-            systemTray.add(trayIcon);
-        } catch (AWTException e) {
-            System.out.println("Error adding to system tray: " + e.getMessage());
-        }
-
-        PopupMenu menu = new PopupMenu();
-        MenuItem exitItem = new MenuItem("Exit");
-
-        exitItem.addActionListener(e -> {
-            systemTray.remove(trayIcon);
-            System.exit(0);
-        });
-
-        menu.add(exitItem);
-        trayIcon.setPopupMenu(menu);
-
-        trayIcon.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getButton() == MouseEvent.BUTTON1) {
-                    frame.setVisible(true);
-                    frame.setExtendedState(JFrame.NORMAL);
-                    systemTray.remove(trayIcon);
+            String query = "SELECT username, role FROM setup.login_id_initial WHERE login_id = ?";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, userName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        // User is already registered
+                        String username = resultSet.getString("username");
+                        String role = resultSet.getString("role");
+                        showWelcomePage(username, role);
+                    } else {
+                        // User is not registered
+                        createIntroPage();
+                    }
                 }
             }
-        });
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
-    private static TrayIcon createDefaultTrayIcon() {
-        ImageIcon icon = new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB));
-        TrayIcon trayIcon = new TrayIcon(icon.getImage(), "Question_Client");
-        trayIcon.setToolTip("Question_Client");
-        return trayIcon;
+    private void createIntroPage() {
+        // Main panel
+        JPanel mainPanel = new JPanel();
+        GroupLayout layout = new GroupLayout(mainPanel);
+        mainPanel.setLayout(layout);
+        layout.setAutoCreateGaps(true);
+        layout.setAutoCreateContainerGaps(true);
+
+        // Components
+        JLabel userIdLabel = new JLabel("User ID:");
+        JTextField userIdField = new JTextField(userName);
+        userIdField.setEditable(false);
+        userIdField.setBackground(Color.LIGHT_GRAY);
+
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameField = new JTextField(15);
+
+        JLabel roleLabel = new JLabel("Role:");
+        String[] roles = {"Teacher", "Student"};
+        roleDropdown = new JComboBox<>(roles);
+        roleDropdown.setSelectedIndex(-1);
+
+        registerButton = new JButton("Register");
+        registerButton.setEnabled(false);
+        registerButton.addActionListener(e -> registerUser());
+
+        // Add listeners to enable/disable the button
+        usernameField.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { toggleRegisterButton(); }
+            public void removeUpdate(DocumentEvent e) { toggleRegisterButton(); }
+            public void changedUpdate(DocumentEvent e) { toggleRegisterButton(); }
+        });
+
+        roleDropdown.addActionListener(e -> toggleRegisterButton());
+
+        // Layout horizontal and vertical groups
+        layout.setHorizontalGroup(
+                layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                .addComponent(userIdLabel)
+                                .addComponent(usernameLabel)
+                                .addComponent(roleLabel))
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                .addComponent(userIdField)
+                                .addComponent(usernameField)
+                                .addComponent(roleDropdown)
+                                .addComponent(registerButton, GroupLayout.Alignment.CENTER))
+        );
+
+        layout.setVerticalGroup(
+                layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                .addComponent(userIdLabel)
+                                .addComponent(userIdField))
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                .addComponent(usernameLabel)
+                                .addComponent(usernameField))
+                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                                .addComponent(roleLabel)
+                                .addComponent(roleDropdown))
+                        .addComponent(registerButton)
+        );
+
+        frame.add(mainPanel);
+        frame.setVisible(true);
+    }
+
+    private void toggleRegisterButton() {
+        boolean isUsernameFilled = !usernameField.getText().trim().isEmpty();
+        boolean isRoleSelected = roleDropdown.getSelectedIndex() != -1;
+        registerButton.setEnabled(isUsernameFilled && isRoleSelected);
+    }
+
+    private void registerUser() {
+        String username = usernameField.getText().trim();
+        String role = (String) roleDropdown.getSelectedItem();
+
+        try (Connection connection = DriverManager.getConnection(
+                "jdbc:mysql://192.168.1.104:3306/setup", "root", "password")) {
+
+            String query = "INSERT INTO setup.login_id_initial (login_id, username, role) VALUES (?, ?, ?)";
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, userName);
+                statement.setString(2, username);
+                statement.setString(3, role);
+                int rowsInserted = statement.executeUpdate();
+
+                if (rowsInserted > 0) {
+                    JOptionPane.showMessageDialog(frame, "Registration successful!");
+                    showWelcomePage(username, role);
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Registration failed!", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Database error: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void showWelcomePage(String username, String role) {
+        // Clear the frame
+        frame.getContentPane().removeAll();
+        frame.repaint();
+
+        // Create the welcome page
+        JPanel welcomePanel = new JPanel();
+        JLabel welcomeLabel = new JLabel("Welcome, " + username + " (" + role + ")!");
+        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        welcomePanel.add(welcomeLabel);
+
+        frame.add(welcomePanel);
+        frame.setVisible(true);
     }
 }
