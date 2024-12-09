@@ -61,7 +61,9 @@ public class MyJDBC extends JPanel {
         layout.setAutoCreateGaps(true);
         layout.setAutoCreateContainerGaps(true);
 
-        // Components
+        JLabel welcomeLabel = new JLabel("Welcome New User, Please Register!");
+        welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 16));
+
         JLabel userIdLabel = new JLabel("User ID:");
         JTextField userIdField = new JTextField(userName);
         userIdField.setEditable(false);
@@ -88,22 +90,25 @@ public class MyJDBC extends JPanel {
 
         roleDropdown.addActionListener(e -> toggleRegisterButton());
 
-        // Layout horizontal and vertical groups
+        // Align components to center
         layout.setHorizontalGroup(
-                layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
-                                .addComponent(userIdLabel)
-                                .addComponent(usernameLabel)
-                                .addComponent(roleLabel))
-                        .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-                                .addComponent(userIdField)
-                                .addComponent(usernameField)
-                                .addComponent(roleDropdown)
-                                .addComponent(registerButton, GroupLayout.Alignment.CENTER))
+                layout.createParallelGroup(GroupLayout.Alignment.CENTER)
+                        .addComponent(welcomeLabel)
+                        .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                                        .addComponent(userIdLabel)
+                                        .addComponent(usernameLabel)
+                                        .addComponent(roleLabel))
+                                .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                                        .addComponent(userIdField)
+                                        .addComponent(usernameField)
+                                        .addComponent(roleDropdown)))
+                        .addComponent(registerButton)
         );
 
         layout.setVerticalGroup(
                 layout.createSequentialGroup()
+                        .addComponent(welcomeLabel)
                         .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
                                 .addComponent(userIdLabel)
                                 .addComponent(userIdField))
@@ -119,6 +124,7 @@ public class MyJDBC extends JPanel {
         frame.add(mainPanel);
         frame.setVisible(true);
     }
+
 
     private void toggleRegisterButton() {
         boolean isUsernameFilled = !usernameField.getText().trim().isEmpty();
@@ -161,7 +167,7 @@ public class MyJDBC extends JPanel {
         // Create the welcome page
         JPanel welcomePanel = new JPanel();
         JLabel welcomeLabel = new JLabel("Welcome, " + username + " (" + role + ")!");
-        welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
+        welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 16));
         welcomePanel.add(welcomeLabel);
 
         frame.add(welcomePanel);
