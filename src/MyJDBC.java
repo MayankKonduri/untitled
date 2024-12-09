@@ -1,6 +1,8 @@
-import java.sql.*;
-import javax.swing.*;
 import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.awt.image.BufferedImage;
+import java.sql.*;
 
 public class MyJDBC extends JPanel {
 
@@ -91,7 +93,7 @@ public class MyJDBC extends JPanel {
     }
 
     public void createGUI() {
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent closing on 'X'
         frame.setSize(1920, 1040);
 
         // Create a JTextArea to display the database operation results
@@ -100,5 +102,66 @@ public class MyJDBC extends JPanel {
 
         frame.add(scrollPane, BorderLayout.CENTER); // Add the scroll pane to the frame
         frame.setVisible(true); // Make the frame visible
+
+        // Add a WindowListener to minimize to system tray when 'X' is clicked
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                minimizeToTray(frame); // Minimize to tray instead of closing
+            }
+        });
+    }
+
+    public static void minimizeToTray(JFrame frame) {
+        if (!SystemTray.isSupported()) {
+            System.out.println("System Tray not supported");
+            return;
+        }
+
+        // Minimize the JFrame and hide it from the taskbar
+        frame.setExtendedState(JFrame.ICONIFIED); // Minimize the window to the taskbar
+        frame.setVisible(false); // Hide the window from the taskbar
+
+        // Create and add the system tray icon
+        SystemTray systemTray = SystemTray.getSystemTray();
+        TrayIcon trayIcon = createDefaultTrayIcon();
+        try {
+            systemTray.add(trayIcon);
+        } catch (AWTException e) {
+            System.out.println("Error adding to system tray: " + e.getMessage());
+        }
+
+        // Set up the tray menu
+        PopupMenu menu = new PopupMenu();
+        MenuItem exitItem = new MenuItem("Exit");
+
+        exitItem.addActionListener(e -> {
+            systemTray.remove(trayIcon); // Remove the tray icon
+            System.exit(0); // Exit the application
+        });
+
+        menu.add(exitItem);
+        trayIcon.setPopupMenu(menu);
+
+        // Add MouseListener to TrayIcon to restore the window when clicked
+        trayIcon.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getButton() == MouseEvent.BUTTON1) {  // Left click to restore
+                    frame.setVisible(true); // Show the frame again
+                    frame.setExtendedState(JFrame.NORMAL); // Restore the window
+                    systemTray.remove(trayIcon); // Remove the tray icon
+                }
+            }
+        });
+    }
+
+
+
+    private static TrayIcon createDefaultTrayIcon() {
+        ImageIcon icon = new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB));
+        TrayIcon trayIcon = new TrayIcon(icon.getImage(), "Question_Client");
+        trayIcon.setToolTip("Question_Client");
+        return trayIcon;
     }
 }
