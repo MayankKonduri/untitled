@@ -16,7 +16,7 @@ public class MyJDBC extends JPanel {
         try {
             // Connect to the database
             Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://127.0.0.1:3306/setup",
+                    "jdbc:mysql://192.168.1.104:3306/setup",
                     "root",
                     "password"
             );
