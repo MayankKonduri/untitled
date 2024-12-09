@@ -30,7 +30,9 @@ public class MyJDBC extends JPanel {
 
     private void checkIfRegistered() {
         try (Connection connection = DriverManager.getConnection(
-                "jdbc:mysql://192.168.1.104:3306/setup", "root", "password")) {
+                //"jdbc:mysql://192.168.1.104:3306/setup", "root", "password")) //Home 192.168.1.104
+                "jdbc:mysql://10.195.75.116:3306/setup", "root", "password")) //School 10.195.75.116
+        {
 
             String query = "SELECT username, role FROM setup.login_id_initial WHERE login_id = ?";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
@@ -137,7 +139,10 @@ public class MyJDBC extends JPanel {
         String role = (String) roleDropdown.getSelectedItem();
 
         try (Connection connection = DriverManager.getConnection(
-                "jdbc:mysql://192.168.1.104:3306/setup", "root", "password")) {
+                //"jdbc:mysql://192.168.1.104:3306/setup", "root", "password")) //Home 192.168.1.104
+                "jdbc:mysql://10.195.75.116/setup", "root", "password")) //School 10.195.75.116
+
+        {
 
             String query = "INSERT INTO setup.login_id_initial (login_id, username, role) VALUES (?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(query)) {
