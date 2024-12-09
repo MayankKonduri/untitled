@@ -29,30 +29,45 @@ public class MyJDBC extends JPanel {
                 if (checkResult.next()) {
                     int count = checkResult.getInt("count");
                     if (count > 0) {
-                        String fetchUsernameQuery = "SELECT username FROM setup.login_id_initial WHERE login_id = ?";
+                        String fetchUsernameQuery = "SELECT username, role FROM setup.login_id_initial WHERE login_id = ?";
                         try (PreparedStatement fetchStatement = connection.prepareStatement(fetchUsernameQuery)) {
                             fetchStatement.setString(1, userName);
                             ResultSet fetchResult = fetchStatement.executeQuery();
                             if (fetchResult.next()) {
                                 String registeredUsername = fetchResult.getString("username");
-                                textArea.append("Hello! " + registeredUsername + ", you are already registered with login_id: " + userName + ".\n");
+                                String role = fetchResult.getString("role");
+                                textArea.append("Hello! " + registeredUsername + ", you are already registered with login_id: " + userName + " as a " + role + ".\n");
                             }
                         }
                     } else {
                         textArea.append("Login ID " + userName + " is not registered. Adding it now.\n");
                         String desiredUsername = JOptionPane.showInputDialog(frame, "Enter your desired Username:");
 
-                        String insertLoginIdQuery = "INSERT INTO setup.login_id_initial (login_id, username) VALUES (?, ?)";
-                        try (PreparedStatement insertStatement = connection.prepareStatement(insertLoginIdQuery)) {
-                            insertStatement.setString(1, userName);
-                            insertStatement.setString(2, desiredUsername);
-                            int rowsInserted = insertStatement.executeUpdate();
+                        String[] roles = {"Teacher", "Student"};
+                        String selectedRole = (String) JOptionPane.showInputDialog(frame,
+                                "Select your role:",
+                                "Role Selection",
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                roles,
+                                roles[0]);
 
-                            if (rowsInserted > 0) {
-                                textArea.append("Login ID " + userName + " with Username " + desiredUsername + " successfully added.\n");
-                            } else {
-                                textArea.append("Failed to add Login ID " + userName + " with Username.\n");
+                        if (selectedRole != null) {
+                            String insertLoginIdQuery = "INSERT INTO setup.login_id_initial (login_id, username, role) VALUES (?, ?, ?)";
+                            try (PreparedStatement insertStatement = connection.prepareStatement(insertLoginIdQuery)) {
+                                insertStatement.setString(1, userName);
+                                insertStatement.setString(2, desiredUsername);
+                                insertStatement.setString(3, selectedRole);
+                                int rowsInserted = insertStatement.executeUpdate();
+
+                                if (rowsInserted > 0) {
+                                    textArea.append("Login ID " + userName + " with Username " + desiredUsername + " and Role " + selectedRole + " successfully added.\n");
+                                } else {
+                                    textArea.append("Failed to add Login ID " + userName + " with Username and Role.\n");
+                                }
                             }
+                        } else {
+                            textArea.append("Role selection was canceled. No data was added.\n");
                         }
                     }
                 }
@@ -66,7 +81,8 @@ public class MyJDBC extends JPanel {
             ResultSet resultSet = statement.executeQuery("SELECT * FROM setup.login_id_initial");
             while (resultSet.next()) {
                 textArea.append("Login ID: " + resultSet.getString("login_id") +
-                        ", Username: " + resultSet.getString("username") + "\n");
+                        ", Username: " + resultSet.getString("username") +
+                        ", Role: " + resultSet.getString("role") + "\n");
             }
 
         } catch (SQLException e) {
@@ -140,8 +156,6 @@ public class MyJDBC extends JPanel {
             }
         });
     }
-
-
 
     private static TrayIcon createDefaultTrayIcon() {
         ImageIcon icon = new ImageIcon(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB));
