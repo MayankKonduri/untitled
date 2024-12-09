@@ -93,8 +93,9 @@ public class MyJDBC extends JPanel {
     }
 
     public void createGUI() {
+        frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // Prevent closing on 'X'
-        frame.setSize(1920, 1040);
+        frame.setSize(700, 400);
 
         // Create a JTextArea to display the database operation results
         textArea.setEditable(false); // Make the text area read-only
