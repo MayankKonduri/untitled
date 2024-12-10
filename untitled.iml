@@ -16,7 +16,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library">
       <library>
         <CLASSES>
           <root url="file://C:/Users/Desktop/LAMMPS/mysql-connector-j-9.1.0" />
@@ -45,8 +45,17 @@
           <root url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0/src/main/user-impl/java" />
           <root url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0/src/test/java" />
         </SOURCES>
-        <jarDirectory url="file://C:/Users/Desktop/LAMMPS/mysql-connector-j-9.1.0" recursive="false" />
         <jarDirectory url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0" recursive="false" />
+        <jarDirectory url="file://C:/Users/Desktop/LAMMPS/mysql-connector-j-9.1.0" recursive="false" />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library" exported="">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../mysql-connector-j-9.1.0.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
       </library>
     </orderEntry>
   </component>
