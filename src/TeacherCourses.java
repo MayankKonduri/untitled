@@ -46,6 +46,9 @@ public class TeacherCourses {
         String[] columnNames = {"Course Name", "Course Period", "Start Time", "End Time"};
         tableModel = new DefaultTableModel(columnNames, 0);
         coursesTable = new JTable(tableModel);
+        // Disable editing for the entire JTable
+        coursesTable.setDefaultEditor(Object.class, null);
+
         JScrollPane tableScrollPane = new JScrollPane(coursesTable);
         tableScrollPane.setPreferredSize(new Dimension(500, 200));
 
