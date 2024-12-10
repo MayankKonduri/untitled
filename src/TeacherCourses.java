@@ -189,7 +189,54 @@ public class TeacherCourses {
         // Create a panel for the buttons
         JPanel bottomPanel = new JPanel();
         bottomPanel.setLayout(new FlowLayout(FlowLayout.CENTER));  // Center the buttons
-        bottomPanel.add(addCourseButton);
+
+
+        // Create the "Delete Course" button
+        JButton deleteCourseButton = new JButton("Delete Course");
+        deleteCourseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+// Action listener for the "Delete Course" button
+        deleteCourseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Get the selected row from the table
+                int selectedRow = coursesTable.getSelectedRow();
+
+                if (selectedRow != -1) {
+                    // Get the course name from the selected row to identify which course to delete
+                    String courseName = (String) tableModel.getValueAt(selectedRow, 0);
+
+                    // Confirm with the user if they really want to delete the course
+                    int confirmation = JOptionPane.showConfirmDialog(null,
+                            "Are you sure you want to delete the course: " + courseName + "?",
+                            "Delete Course",
+                            JOptionPane.YES_NO_OPTION);
+
+                    if (confirmation == JOptionPane.YES_OPTION) {
+                        // Delete the course from the database
+                        try (Connection connection = DriverManager.getConnection(url, username, password)) {
+                            String deleteCourseSQL = "DELETE FROM `" + teacherName + "_courses` WHERE course_name = ?";
+                            try (PreparedStatement ps = connection.prepareStatement(deleteCourseSQL)) {
+                                ps.setString(1, courseName);
+                                ps.executeUpdate();
+
+                                // Remove the course from the table display
+                                tableModel.removeRow(selectedRow);
+                                JOptionPane.showMessageDialog(null, "Course deleted successfully!");
+                            }
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(null, "Please select a course to delete.");
+                }
+            }
+        });
+
+// Add the "Delete Course" button to the bottomPanel, to the left of the "Add Course" button
+        bottomPanel.add(deleteCourseButton); // Add to the panel first
+        bottomPanel.add(addCourseButton);  // Then add the "Add Course" button
         bottomPanel.add(editCourseButton);  // Add the "Edit Course" button
 
         // Add the top and bottom panels to the main panel
