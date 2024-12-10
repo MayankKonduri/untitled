@@ -170,12 +170,10 @@ public class MyJDBC extends JPanel {
             new StudentPage(frame, userName, username); // Redirect to the Student page
         } else {
             // Display Teacher Welcome Page
-            JPanel welcomePanel = new JPanel();
-            JLabel welcomeLabel = new JLabel("Welcome, " + username + " (" + role + ")!");
-            welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 16));
-            welcomePanel.add(welcomeLabel);
-            frame.add(welcomePanel);
-            frame.setVisible(true);
+            frame.getContentPane().removeAll();
+            frame.repaint();
+            new TeacherPage(frame, userName, username);
+
         }
     }
 }
