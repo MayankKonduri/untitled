@@ -31,7 +31,7 @@ public class MyJDBC extends JPanel {
     private void checkIfRegistered() {
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:mysql://192.168.1.11:3306/setup", "root", "password")) //Home  192.168.1.11
-                //"jdbc:mysql://10.195.75.116:3306/setup", "root", "password")) //School 10.195.75.116
+        //"jdbc:mysql://10.195.75.116:3306/setup", "root", "password")) //School 10.195.75.116
         {
 
             String query = "SELECT username, role FROM setup.login_id_initial WHERE login_id = ?";
@@ -127,7 +127,6 @@ public class MyJDBC extends JPanel {
         frame.setVisible(true);
     }
 
-
     private void toggleRegisterButton() {
         boolean isUsernameFilled = !usernameField.getText().trim().isEmpty();
         boolean isRoleSelected = roleDropdown.getSelectedIndex() != -1;
@@ -140,7 +139,7 @@ public class MyJDBC extends JPanel {
 
         try (Connection connection = DriverManager.getConnection(
                 "jdbc:mysql://192.168.1.11:3306/setup", "root", "password")) //Home  192.168.1.11
-                //"jdbc:mysql://10.195.75.116/setup", "root", "password")) //School 10.195.75.116
+        //"jdbc:mysql://10.195.75.116/setup", "root", "password")) //School 10.195.75.116
 
         {
 
@@ -165,17 +164,18 @@ public class MyJDBC extends JPanel {
     }
 
     private void showWelcomePage(String username, String role) {
-        // Clear the frame
-        frame.getContentPane().removeAll();
-        frame.repaint();
-
-        // Create the welcome page
-        JPanel welcomePanel = new JPanel();
-        JLabel welcomeLabel = new JLabel("Welcome, " + username + " (" + role + ")!");
-        welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 16));
-        welcomePanel.add(welcomeLabel);
-
-        frame.add(welcomePanel);
-        frame.setVisible(true);
+        if ("Student".equalsIgnoreCase(role)) {
+            frame.getContentPane().removeAll();
+            frame.repaint();
+            new StudentPage(frame, userName, username); // Redirect to the Student page
+        } else {
+            // Display Teacher Welcome Page
+            JPanel welcomePanel = new JPanel();
+            JLabel welcomeLabel = new JLabel("Welcome, " + username + " (" + role + ")!");
+            welcomeLabel.setFont(new Font("Georgia", Font.BOLD, 16));
+            welcomePanel.add(welcomeLabel);
+            frame.add(welcomePanel);
+            frame.setVisible(true);
+        }
     }
 }
