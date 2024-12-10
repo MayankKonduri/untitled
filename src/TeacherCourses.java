@@ -207,33 +207,32 @@ public class TeacherCourses {
                 int selectedRow = coursesTable.getSelectedRow();
 
                 if (selectedRow != -1) {
-                    // Get the course name from the selected row to identify which course to delete
+                    // Get the course name and other relevant details from the selected row
                     String courseName = (String) tableModel.getValueAt(selectedRow, 0);
+                    String coursePeriod = (String) tableModel.getValueAt(selectedRow, 1);
 
-                    // Confirm with the user if they really want to delete the course
+                    // Confirm with the user
                     int confirmation = JOptionPane.showConfirmDialog(null,
                             "Are you sure you want to delete the course: " + courseName + "?",
                             "Delete Course",
                             JOptionPane.YES_NO_OPTION);
 
                     if (confirmation == JOptionPane.YES_OPTION) {
-                        // Delete the course from the database
                         try (Connection connection = DriverManager.getConnection(url, username, password)) {
-                            String deleteCourseSQL = "DELETE FROM `" + teacherName + "_courses` WHERE course_name = ? AND course_period = ? AND course_start_time = ? AND course_end_time = ?";
+                            // Use a simplified delete query with fewer matching fields
+                            String deleteCourseSQL = "DELETE FROM `" + teacherName + "_courses` WHERE course_name = ? AND course_period = ?";
                             try (PreparedStatement ps = connection.prepareStatement(deleteCourseSQL)) {
-                                // Use the full course details to identify it uniquely in the database
-                                ps.setString(1, courseName);
-                                ps.setString(2, (String) tableModel.getValueAt(selectedRow, 1));
-                                ps.setString(3, (String) tableModel.getValueAt(selectedRow, 2));
-                                ps.setString(4, (String) tableModel.getValueAt(selectedRow, 3));
+                                ps.setString(1, courseName.trim());
+                                ps.setString(2, coursePeriod.trim());
                                 ps.executeUpdate();
 
-                                // Remove the course from the table display (just remove the selected row)
+                                // Remove the row from the table display
                                 tableModel.removeRow(selectedRow);
                                 JOptionPane.showMessageDialog(null, "Course deleted successfully!");
                             }
                         } catch (SQLException ex) {
                             ex.printStackTrace();
+                            JOptionPane.showMessageDialog(null, "Failed to delete the course from the database.");
                         }
                     }
                 } else {
