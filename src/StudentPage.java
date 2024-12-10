@@ -13,7 +13,8 @@ class StudentPage {
         try {
             // Database connection (adjust the URL, username, and password as per your setup)
             Connection connection = DriverManager.getConnection(
-                    "jdbc:mysql://192.168.1.11:3306/setup", "root", "password");
+                    //"jdbc:mysql://192.168.1.11:3306/setup", "root", "password"); //Home  192.168.1.11
+                    "jdbc:mysql://10.195.75.116/setup", "root", "password"); //School 10.195.75.116
 
             // Query to get the course columns for the student
             String query = "SELECT * FROM setup.students WHERE student_id = ?";
@@ -147,7 +148,8 @@ class StudentPage {
                         // Update the database
                         try {
                             Connection connection = DriverManager.getConnection(
-                                    "jdbc:mysql://192.168.1.11:3306/setup", "root", "password");
+                                    //"jdbc:mysql://192.168.1.11:3306/setup", "root", "password"); //Home  192.168.1.11
+                                    "jdbc:mysql://10.195.75.116/setup", "root", "password"); //School 10.195.75.116
 
                             // Determine the next available course index
                             int nextCourseIndex = studentCourses.size();

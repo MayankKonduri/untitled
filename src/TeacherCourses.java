@@ -18,7 +18,8 @@ public class TeacherCourses {
         mainPanel.setLayout(new BorderLayout());  // Use BorderLayout for better control
 
         // Establish SQL connection
-        String url = "jdbc:mysql://192.168.1.11:3306/setup"; // Update this as necessary
+        //String url = "jdbc:mysql://192.168.1.11:3306/setup"; // Home  192.168.1.11
+        String url = "jdbc:mysql://10.195.75.116/setup"; //School 10.195.75.116
         String username = "root";
         String password = "password";
 
@@ -258,21 +259,22 @@ public class TeacherCourses {
     }
 
     private void loadCoursesFromDatabase(String teacherName) {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://192.168.1.11:3306/setup", "root", "password")) {
-            String query = "SELECT * FROM `" + teacherName + "_courses`";
-            try (Statement stmt = connection.createStatement();
-                 ResultSet rs = stmt.executeQuery(query)) {
+        //try (Connection connection = DriverManager.getConnection("jdbc:mysql://192.168.1.11:3306/setup", "root", "password")) { // Home  192.168.1.11
+            try (Connection connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/setup", "root", "password")) { //School 10.195.75.116
+                String query = "SELECT * FROM `" + teacherName + "_courses`";
+                try (Statement stmt = connection.createStatement();
+                     ResultSet rs = stmt.executeQuery(query)) {
 
-                while (rs.next()) {
-                    String courseName = rs.getString("course_name");
-                    String coursePeriod = rs.getString("course_period");
-                    String courseStartTime = rs.getString("course_start_time");
-                    String courseEndTime = rs.getString("course_end_time");
-                    tableModel.addRow(new Object[]{courseName, coursePeriod, courseStartTime, courseEndTime});
+                    while (rs.next()) {
+                        String courseName = rs.getString("course_name");
+                        String coursePeriod = rs.getString("course_period");
+                        String courseStartTime = rs.getString("course_start_time");
+                        String courseEndTime = rs.getString("course_end_time");
+                        tableModel.addRow(new Object[]{courseName, coursePeriod, courseStartTime, courseEndTime});
+                    }
                 }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
         }
     }
-}
