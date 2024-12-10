@@ -24,6 +24,7 @@ public class MyJDBC extends JPanel {
             frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             frame.setResizable(false);
             frame.setSize(500, 300);
+            frame.setVisible(true);
             new MyJDBC(frame);
         });
     }
