@@ -1,14 +1,14 @@
 import javax.swing.*;
 import java.awt.*;
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 
 class StudentPage {
     public StudentPage(JFrame frame, String studentId, String studentName) {
         frame.getContentPane().removeAll();
 
         // Default courses for the new student
-        ArrayList<String> studentCourses = new ArrayList<>();
+        ArrayList<String[]> studentCourses = new ArrayList<>();
 
         try {
             // Database connection (adjust the URL, username, and password as per your setup)
@@ -27,7 +27,12 @@ class StudentPage {
                 // Split courses into an array (assuming they're stored as a comma-separated string)
                 if (courses != null && !courses.isEmpty()) {
                     for (String course : courses.split(",")) {
-                        studentCourses.add(course.trim());
+                        String[] courseDetails = course.trim().split(" \\(Period ");
+                        if (courseDetails.length == 2) {
+                            String teacher = courseDetails[0];
+                            String period = courseDetails[1].replace(")", "").trim();
+                            studentCourses.add(new String[]{teacher, period});
+                        }
                     }
                 }
             } else {
@@ -51,6 +56,9 @@ class StudentPage {
             return;
         }
 
+        // Sort courses by period
+        studentCourses.sort(Comparator.comparingInt(course -> Integer.parseInt(course[1])));
+
         // Create the student panel
         JPanel studentPanel = new JPanel();
         studentPanel.setLayout(new BoxLayout(studentPanel, BoxLayout.Y_AXIS));
@@ -65,15 +73,21 @@ class StudentPage {
         coursesLabel.setFont(new Font("Georgia", Font.PLAIN, 14));
         coursesLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // List of courses
-        DefaultListModel<String> coursesModel = new DefaultListModel<>();
-        for (String course : studentCourses) {
-            coursesModel.addElement(course);
+        // Create a table to display courses, with the "Course Name" column added
+        String[] columnNames = {"Course Name", "Teacher", "Period"};  // Add "Course Name" as the first column
+        String[][] courseData = new String[studentCourses.size()][3];  // Add a column for "Course Name"
+
+        // Populate the table data
+        for (int i = 0; i < studentCourses.size(); i++) {
+            courseData[i][0] = "";  // Empty course name for now
+            courseData[i][1] = studentCourses.get(i)[0];  // Teacher
+            courseData[i][2] = studentCourses.get(i)[1];  // Period
         }
-        JList<String> coursesList = new JList<>(coursesModel);
-        coursesList.setFont(new Font("Georgia", Font.PLAIN, 14));
-        coursesList.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JScrollPane coursesScrollPane = new JScrollPane(coursesList);
+
+        JTable coursesTable = new JTable(courseData, columnNames);
+        coursesTable.setFont(new Font("Georgia", Font.PLAIN, 14));
+        coursesTable.setRowHeight(30);
+        JScrollPane coursesScrollPane = new JScrollPane(coursesTable);
 
         // Add course button
         JButton addCourseButton = new JButton("Add Course");
@@ -81,30 +95,103 @@ class StudentPage {
         addCourseButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         addCourseButton.addActionListener(e -> {
-            String newCourse = JOptionPane.showInputDialog(frame, "Enter the course name:");
-            if (newCourse != null && !newCourse.trim().isEmpty()) {
-                String courseName = newCourse.trim();
-                if (!studentCourses.contains(courseName)) {
-                    studentCourses.add(courseName);
-                    coursesModel.addElement(courseName);
+            JPanel inputPanel = new JPanel();
+            inputPanel.setLayout(new BoxLayout(inputPanel, BoxLayout.Y_AXIS));
 
-                    // Update the database
-                    try {
-                        Connection connection = DriverManager.getConnection(
-                                "jdbc:mysql://192.168.1.11:3306/setup", "root", "password");
-                        String updateQuery = "UPDATE setup.students SET student_courses = ? WHERE student_id = ?";
-                        PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
-                        updateStatement.setString(1, String.join(",", studentCourses));
-                        updateStatement.setString(2, studentId);
-                        updateStatement.executeUpdate();
-                        updateStatement.close();
-                        connection.close();
-                    } catch (SQLException ex) {
-                        ex.printStackTrace();
-                        JOptionPane.showMessageDialog(frame, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            // Teacher last name input
+            JTextField teacherLastNameField = new JTextField();
+            teacherLastNameField.setFont(new Font("Georgia", Font.PLAIN, 14));
+            inputPanel.add(new JLabel("Teacher's Last Name:"));
+            inputPanel.add(teacherLastNameField);
+
+            // Class period dropdown
+            String[] periods = {"1", "2", "3", "4", "5", "6", "7"};
+            JComboBox<String> classPeriodComboBox = new JComboBox<>(periods);
+            classPeriodComboBox.setFont(new Font("Georgia", Font.PLAIN, 14));
+            inputPanel.add(new JLabel("Class Period:"));
+            inputPanel.add(classPeriodComboBox);
+
+            int option = JOptionPane.showConfirmDialog(frame, inputPanel, "Enter Course Details", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+            if (option == JOptionPane.OK_OPTION) {
+                String teacherLastName = teacherLastNameField.getText().trim();
+                String classPeriod = (String) classPeriodComboBox.getSelectedItem();
+
+                if (!teacherLastName.isEmpty() && classPeriod != null) {
+                    String newCourse = teacherLastName + " (Period " + classPeriod + ")";
+                    if (!studentCourses.contains(newCourse)) {
+                        studentCourses.add(new String[]{teacherLastName, classPeriod});
+
+                        // Sort the courses by period again
+                        studentCourses.sort(Comparator.comparingInt(course -> Integer.parseInt(course[1])));
+
+                        // Update the table
+                        String[][] updatedCourseData = new String[studentCourses.size()][3];  // Add "Course Name" column
+                        for (int i = 0; i < studentCourses.size(); i++) {
+                            updatedCourseData[i][0] = "";  // Empty course name for now
+                            updatedCourseData[i][1] = studentCourses.get(i)[0];
+                            updatedCourseData[i][2] = studentCourses.get(i)[1];
+                        }
+                        coursesTable.setModel(new javax.swing.table.DefaultTableModel(updatedCourseData, columnNames));
+
+                        // Update the database
+                        try {
+                            Connection connection = DriverManager.getConnection(
+                                    "jdbc:mysql://192.168.1.11:3306/setup", "root", "password");
+
+                            // Check if the columns already exist
+                            Statement stmt = connection.createStatement();
+                            ResultSet rs = stmt.executeQuery("SHOW COLUMNS FROM setup.students");
+
+                            boolean teacherColumnExists = false;
+                            boolean periodColumnExists = false;
+                            boolean nameColumnExists = false;
+                            while (rs.next()) {
+                                String columnName = rs.getString("Field");
+                                if (columnName.equals("course_" + (studentCourses.size()) + "_teacher")) {
+                                    teacherColumnExists = true;
+                                }
+                                if (columnName.equals("course_" + (studentCourses.size()) + "_period")) {
+                                    periodColumnExists = true;
+                                }
+                                if (columnName.equals("course_" + (studentCourses.size()) + "_name")) {
+                                    nameColumnExists = true;
+                                }
+                            }
+
+                            // Add new columns only if they do not exist
+                            if (!teacherColumnExists) {
+                                String alterQuery = "ALTER TABLE setup.students " +
+                                        "ADD COLUMN course_" + (studentCourses.size()) + "_teacher VARCHAR(255), " +
+                                        "ADD COLUMN course_" + (studentCourses.size()) + "_period VARCHAR(255), " +
+                                        "ADD COLUMN course_" + (studentCourses.size()) + "_name VARCHAR(255) DEFAULT ''";
+                                PreparedStatement alterStatement = connection.prepareStatement(alterQuery);
+                                alterStatement.executeUpdate();
+                                alterStatement.close();
+                            }
+
+                            // Now, update the new columns with course details
+                            String updateQuery = "UPDATE setup.students SET " +
+                                    "course_" + (studentCourses.size()) + "_teacher = ?, " +
+                                    "course_" + (studentCourses.size()) + "_period = ? " +
+                                    "WHERE student_id = ?";
+                            PreparedStatement updateStatement = connection.prepareStatement(updateQuery);
+                            updateStatement.setString(1, teacherLastName);
+                            updateStatement.setString(2, classPeriod);
+                            updateStatement.setString(3, studentId);
+                            updateStatement.executeUpdate();
+                            updateStatement.close();
+
+                            connection.close();
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                            JOptionPane.showMessageDialog(frame, "Database error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } else {
+                        JOptionPane.showMessageDialog(frame, "Course already exists!", "Error", JOptionPane.WARNING_MESSAGE);
                     }
                 } else {
-                    JOptionPane.showMessageDialog(frame, "Course already exists!", "Error", JOptionPane.WARNING_MESSAGE);
+                    JOptionPane.showMessageDialog(frame, "Please fill in all fields!", "Error", JOptionPane.WARNING_MESSAGE);
                 }
             }
         });
@@ -118,10 +205,12 @@ class StudentPage {
         studentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         studentPanel.add(addCourseButton);
 
-        // Add the panel to the frame
-        frame.add(studentPanel);
+        // Scrollable panel to allow for better layout
+        JScrollPane scrollPanel = new JScrollPane(studentPanel);
+
+        // Set the content pane of the frame
+        frame.setContentPane(scrollPanel);
         frame.revalidate();
         frame.repaint();
-        frame.setVisible(true);
     }
 }
