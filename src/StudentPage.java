@@ -31,7 +31,7 @@ class StudentPage {
                         if (courseDetails.length == 2) {
                             String teacher = courseDetails[0];
                             String period = courseDetails[1].replace(")", "").trim();
-                            studentCourses.add(new String[]{teacher, period});
+                            studentCourses.add(new String[]{teacher, period, ""});  // Empty course name initially
                         }
                     }
                 }
@@ -79,7 +79,7 @@ class StudentPage {
 
         // Populate the table data
         for (int i = 0; i < studentCourses.size(); i++) {
-            courseData[i][0] = "";  // Empty course name for now
+            courseData[i][0] = studentCourses.get(i)[2];  // Empty course name for now, or the real course name if available
             courseData[i][1] = studentCourses.get(i)[0];  // Teacher
             courseData[i][2] = studentCourses.get(i)[1];  // Period
         }
@@ -120,7 +120,7 @@ class StudentPage {
                 if (!teacherLastName.isEmpty() && classPeriod != null) {
                     String newCourse = teacherLastName + " (Period " + classPeriod + ")";
                     if (!studentCourses.contains(newCourse)) {
-                        studentCourses.add(new String[]{teacherLastName, classPeriod});
+                        studentCourses.add(new String[]{teacherLastName, classPeriod, ""});  // Add with empty name
 
                         // Sort the courses by period again
                         studentCourses.sort(Comparator.comparingInt(course -> Integer.parseInt(course[1])));
@@ -128,7 +128,7 @@ class StudentPage {
                         // Update the table
                         String[][] updatedCourseData = new String[studentCourses.size()][3];  // Add "Course Name" column
                         for (int i = 0; i < studentCourses.size(); i++) {
-                            updatedCourseData[i][0] = "";  // Empty course name for now
+                            updatedCourseData[i][0] = studentCourses.get(i)[2];  // Empty course name for now
                             updatedCourseData[i][1] = studentCourses.get(i)[0];
                             updatedCourseData[i][2] = studentCourses.get(i)[1];
                         }
@@ -205,11 +205,8 @@ class StudentPage {
         studentPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         studentPanel.add(addCourseButton);
 
-        // Scrollable panel to allow for better layout
-        JScrollPane scrollPanel = new JScrollPane(studentPanel);
-
-        // Set the content pane of the frame
-        frame.setContentPane(scrollPanel);
+        // Set the layout for the frame
+        frame.getContentPane().add(studentPanel, BorderLayout.CENTER);
         frame.revalidate();
         frame.repaint();
     }
