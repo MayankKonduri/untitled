@@ -215,12 +215,16 @@ public class TeacherCourses {
                     if (confirmation == JOptionPane.YES_OPTION) {
                         // Delete the course from the database
                         try (Connection connection = DriverManager.getConnection(url, username, password)) {
-                            String deleteCourseSQL = "DELETE FROM `" + teacherName + "_courses` WHERE course_name = ?";
+                            String deleteCourseSQL = "DELETE FROM `" + teacherName + "_courses` WHERE course_name = ? AND course_period = ? AND course_start_time = ? AND course_end_time = ?";
                             try (PreparedStatement ps = connection.prepareStatement(deleteCourseSQL)) {
+                                // Use the full course details to identify it uniquely in the database
                                 ps.setString(1, courseName);
+                                ps.setString(2, (String) tableModel.getValueAt(selectedRow, 1));
+                                ps.setString(3, (String) tableModel.getValueAt(selectedRow, 2));
+                                ps.setString(4, (String) tableModel.getValueAt(selectedRow, 3));
                                 ps.executeUpdate();
 
-                                // Remove the course from the table display
+                                // Remove the course from the table display (just remove the selected row)
                                 tableModel.removeRow(selectedRow);
                                 JOptionPane.showMessageDialog(null, "Course deleted successfully!");
                             }
@@ -233,6 +237,7 @@ public class TeacherCourses {
                 }
             }
         });
+
 
 // Add the "Delete Course" button to the bottomPanel, to the left of the "Add Course" button
         bottomPanel.add(deleteCourseButton); // Add to the panel first
