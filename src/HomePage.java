@@ -216,11 +216,11 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/QC", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
-            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'QC'";
+            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
             // Create SQL query to create the table
@@ -261,11 +261,11 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://127.0.0.1:3306/QC", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
-            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'QC'";
+            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
             // Create SQL query to create the table
