@@ -2,13 +2,14 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.SQLException;
 
 public class StudentHome extends JPanel {
     private JFrame frame;
     private DatabaseManager databaseManager;
     private String userName = System.getProperty("user.name");
 
-    public StudentHome(JFrame frame) {
+    public StudentHome(JFrame frame) throws SQLException {
         this.frame = frame;
         this.databaseManager = new DatabaseManager();  // Initialize database manager
 
@@ -33,6 +34,8 @@ public class StudentHome extends JPanel {
             messageLabel.setFont(georgiaFont);
             messageLabel.setForeground(Color.GREEN); // Green color for non-teacher
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
+
+            System.out.println(databaseManager.checkNameInStudentsTables(userName));
         }
 
         // Home button and panel

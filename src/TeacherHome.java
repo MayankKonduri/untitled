@@ -3,9 +3,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Arrays;
-import javax.mail.*;
-import javax.mail.internet.*;
-import java.util.Properties;
+//import javax.mail.*;
+//import javax.mail.internet.*;
+//import java.util.Properties;
 
 public class TeacherHome extends JPanel {
     private JFrame frame;

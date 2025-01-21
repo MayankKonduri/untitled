@@ -431,6 +431,33 @@ public class DatabaseManager {
             System.out.println(rowsAffected + " row(s) deleted from table " + tableName);
         }
     }
+
+    public String checkNameInStudentsTables(String nameToCheck) throws SQLException {
+        // Step 1: Get tables ending with '_students'
+        String fetchTablesQuery = "SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%_students';";
+        try (Statement tableStmt = connection.createStatement();
+             ResultSet tableResultSet = tableStmt.executeQuery(fetchTablesQuery)) {
+
+            // Step 2: Iterate over each table
+            while (tableResultSet.next()) {
+                String tableName = tableResultSet.getString("table_name");
+
+                // Step 2a: Check if 'StudentID' exists in this table and search for the name in 'StudentID'
+                String checkNameQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?";
+                try (PreparedStatement nameStmt = connection.prepareStatement(checkNameQuery)) {
+                    nameStmt.setString(1, nameToCheck);
+                    try (ResultSet nameResultSet = nameStmt.executeQuery()) {
+                        if (nameResultSet.next() && nameResultSet.getInt(1) > 0) {
+                            return "Name '" + nameToCheck + "' found in table '" + tableName + "' under StudentID column.";
+                        }
+                    }
+                }
+            }
+        }
+        return "Name '" + nameToCheck + "' not found in any '_students' table.";
+    }
+
+
     public String[] getTeacherStudents(String tableName) throws SQLException {
         // Ensure table name is safe from SQL injection by validating input
         if (!tableName.matches("[a-zA-Z0-9_]+")) {

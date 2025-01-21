@@ -196,8 +196,13 @@ public class HomePage extends JPanel {
         studentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                StudentHome studentHome = new StudentHome(frame);
-                    frame.getContentPane().removeAll();
+                StudentHome studentHome = null;
+                try {
+                    studentHome = new StudentHome(frame);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                frame.getContentPane().removeAll();
                     frame.revalidate();
                     frame.repaint();
                     frame.setSize(400, 325);
