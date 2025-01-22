@@ -15,6 +15,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.ParseException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,6 +29,11 @@ public class TeacherPeriodView extends JPanel {
     public JButton editButton = new JButton("Edit");
     DatabaseManager dbManager = new DatabaseManager();
     String userName = System.getProperty("user.name");
+    JTextField classNameField;
+    JFormattedTextField startTimeField;
+    JFormattedTextField endTimeField;
+    JTable studentTable = new JTable();
+    DefaultTableModel tableModel;
     public TeacherPeriodView(JFrame jFrame, int period) {
 
 
@@ -48,11 +55,51 @@ public class TeacherPeriodView extends JPanel {
         homeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherCourses teacherCourses = new TeacherCourses(frame);
-                frame.getContentPane().removeAll();
-                frame.getContentPane().add(teacherCourses);
-                frame.revalidate();
-                frame.repaint();
+                // Check if the fields and table are empty or not
+                boolean isClassNameEmpty = classNameField.getText().isEmpty();
+                boolean isStartTimeEmpty = startTimeField.getText().trim().isEmpty() || startTimeField.getText().equals("  :  ");
+                boolean isEndTimeEmpty = endTimeField.getText().trim().isEmpty() || endTimeField.getText().equals("  :  ");
+                boolean isTableEmpty = tableModel.getRowCount() == 0;
+
+                // Debugging output
+                System.out.println(isClassNameEmpty);
+                System.out.println(isStartTimeEmpty);
+                System.out.println(isEndTimeEmpty);
+                System.out.println(isTableEmpty);
+
+                // Check if all fields are either empty or all are full
+                if ((isClassNameEmpty && isStartTimeEmpty && isEndTimeEmpty && isTableEmpty) ||
+                        (!isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty && !isTableEmpty)) {
+                    // If none or all fields are filled, proceed to the new page
+                    TeacherCourses teacherCourses = new TeacherCourses(frame);
+                    frame.getContentPane().removeAll();
+                    frame.getContentPane().add(teacherCourses);
+                    frame.revalidate();
+                    frame.repaint();
+                    System.out.println("New page loaded.");
+                } else {
+                    // If some fields are filled but not all of them, do not proceed
+                    if (!isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty) {
+                        // All three fields have values, proceed to new page
+                        TeacherCourses teacherCourses = new TeacherCourses(frame);
+                        frame.getContentPane().removeAll();
+                        frame.getContentPane().add(teacherCourses);
+                        frame.revalidate();
+                        frame.repaint();
+                        System.out.println("New page loaded.");
+                    } else if (!isTableEmpty && !isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty) {
+                        // If table has value and all fields are filled, proceed to new page
+                        TeacherCourses teacherCourses = new TeacherCourses(frame);
+                        frame.getContentPane().removeAll();
+                        frame.getContentPane().add(teacherCourses);
+                        frame.revalidate();
+                        frame.repaint();
+                        System.out.println("New page loaded.");
+                    } else {
+                        // If conditions aren't met (not all fields or table are filled), do nothing
+                        System.out.println("Cannot proceed to new page. Fields are not valid.");
+                    }
+                }
             }
         });
 
@@ -62,7 +109,7 @@ public class TeacherPeriodView extends JPanel {
         titleLabel.setBounds(110, 25, 200, 30);
         add(titleLabel);
 
-        JTextField classNameField = new JTextField(15);
+        classNameField = new JTextField(15);
         classNameField.setFont(new Font("Georgia", Font.BOLD, 8));
         classNameField.setBounds(260, 30, 95, 25);
         add(classNameField);
@@ -72,7 +119,7 @@ public class TeacherPeriodView extends JPanel {
         durationLabel.setBounds(80, 60, 60, 25);
         add(durationLabel);
 
-        JFormattedTextField startTimeField = createTimeField();
+        startTimeField = createTimeField();
         startTimeField.setBounds(150, 60, 60, 25);
         add(startTimeField);
 
@@ -81,13 +128,12 @@ public class TeacherPeriodView extends JPanel {
         toLabel.setBounds(220, 60, 20, 25);
         add(toLabel);
 
-        JFormattedTextField endTimeField = createTimeField();
+        endTimeField = createTimeField();
         endTimeField.setBounds(250, 60, 60, 25);
         add(endTimeField);
 
         // Table setup
-        JTable studentTable = new JTable();
-        DefaultTableModel tableModel = new DefaultTableModel(new Object[]{"Student ID"}, 0);
+        tableModel = new DefaultTableModel(new Object[]{"Student ID"}, 0);
         studentTable.setModel(tableModel);
 
         studentTable.setFont(new Font("Georgia", Font.PLAIN, 12));
@@ -158,26 +204,38 @@ public class TeacherPeriodView extends JPanel {
         addButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Show an input dialog to get the Student ID
-                String studentId = JOptionPane.showInputDialog(frame, "Enter Student ID:", "Add Student", JOptionPane.PLAIN_MESSAGE);
-
-                // Check if the input is valid (not null or empty)
-                if (studentId != null && !studentId.trim().isEmpty()) {
-                    // Add the Student ID to the table
-                    tableModel.addRow(new Object[]{studentId.trim()});
-                } else if (studentId != null) {
-                    // Show an error message if the input is invalid
-                    JOptionPane.showMessageDialog(frame, "Student ID cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
-                }
-
                 String[] temp1 = dbManager.getTeacher(userName);
                 String teacherName = temp1[1];
                 teacherName = teacherName.replaceAll("^(Mr\\.\\s*|Ms\\.\\s*|Mrs\\.\\s*)", "").trim();
                 String mainTable = teacherName + "_" + period + "_Students";
-                try {
-                    dbManager.updateTeacherStudents(mainTable, studentId.trim());
-                } catch (SQLException ex) {
-                    throw new RuntimeException(ex);
+
+                // Show an input dialog to get the Student ID
+                String studentId = JOptionPane.showInputDialog(frame, "Enter Student ID:", "Add Student", JOptionPane.PLAIN_MESSAGE);
+
+
+
+                // Check if the input is valid (not null or empty)
+                if (studentId != null && !studentId.trim().isEmpty()) {
+                    try {
+                        Boolean doubleStudent = dbManager.checkValueInTable(mainTable, studentId);
+                        if(!doubleStudent){
+                            tableModel.addRow(new Object[]{studentId.trim()});
+                            try {
+                                dbManager.updateTeacherStudents(mainTable, studentId.trim());
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        }
+                        else{
+                            JOptionPane.showMessageDialog(frame, "Student ID Already Exists in Table", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    // Add the Student ID to the table
+                } else if (studentId != null) {
+                    // Show an error message if the input is invalid
+                    JOptionPane.showMessageDialog(frame, "Student ID cannot be empty.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
@@ -292,16 +350,64 @@ public class TeacherPeriodView extends JPanel {
         startTimeField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
-                dbManager.updateTeacherMain(tableName, classNameField.getText(), startTimeField.getText(), endTimeField.getText());
+                String startTime = startTimeField.getText().trim();
+                String endTime = endTimeField.getText().trim();
+
+                // Check if both start time and end time are valid (not just empty or default format "  :  ")
+                if (!startTime.isEmpty() && !startTime.equals("  :  ") && !endTime.isEmpty() && !endTime.equals("  :  ")) {
+                    // Compare times if both are valid
+                    if (isStartTimeAfterEndTime(startTime, endTime)) {
+                        // Show error popup if start time is after end time
+                        JOptionPane.showMessageDialog(null, "Start Time cannot be after End Time.", "Time Error", JOptionPane.ERROR_MESSAGE);
+                        startTimeField.setText(""); // Clear the start time field
+                    } else {
+                        // Call the update method only if both fields have valid values
+                        dbManager.updateTeacherMain(tableName, classNameField.getText(), startTime, endTime);
+                    }
+                } else {
+                    System.out.println("Start Time or End Time is empty or invalid. Not updating.");
+                }
             }
         });
 
         endTimeField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusLost(FocusEvent e) {
-                dbManager.updateTeacherMain(tableName, classNameField.getText(), startTimeField.getText(), endTimeField.getText());
+                String startTime = startTimeField.getText().trim();
+                String endTime = endTimeField.getText().trim();
+
+                // Check if both start time and end time are valid (not just empty or default format "  :  ")
+                if (!startTime.isEmpty() && !startTime.equals("  :  ") && !endTime.isEmpty() && !endTime.equals("  :  ")) {
+                    // Compare times if both are valid
+                    if (isStartTimeAfterEndTime(startTime, endTime)) {
+                        // Show error popup if start time is after end time
+                        JOptionPane.showMessageDialog(null, "Start Time cannot be after End Time, Values Have Been Erased Try Again", "Time Error", JOptionPane.ERROR_MESSAGE);
+                        endTimeField.setText(""); // Clear the end time field
+                    } else {
+                        // Call the update method only if both fields have valid values
+                        dbManager.updateTeacherMain(tableName, classNameField.getText(), startTime, endTime);
+                    }
+                } else {
+                    System.out.println("Start Time or End Time is empty or invalid. Not updating.");
+                }
             }
         });
+    }
+
+    // Helper method to compare startTime and endTime
+    private boolean isStartTimeAfterEndTime(String startTime, String endTime) {
+        try {
+            // Parse the times into LocalTime objects
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm"); // Assuming time format is HH:mm
+            LocalTime start = LocalTime.parse(startTime, formatter);
+            LocalTime end = LocalTime.parse(endTime, formatter);
+
+            // Return true if startTime is after endTime, otherwise false
+            return start.isAfter(end);
+        } catch (Exception e) {
+            // If there's an error parsing the time, return false
+            return false;
+        }
     }
 
     private ArrayList<String> importStudents(){

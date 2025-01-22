@@ -413,6 +413,37 @@ public class DatabaseManager {
         }
     }
 
+    public boolean checkValueInTable(String tableName, String valueToCheck) throws SQLException {
+        // Ensure table name is safe from SQL injection by validating input
+        if (!tableName.matches("[a-zA-Z0-9_]+")) {
+            throw new IllegalArgumentException("Invalid table name.");
+        }
+
+        // Build the SQL query with a placeholder for the value to check
+        String checkSQL = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?"; // Modify the column name as needed
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(checkSQL)) {
+            // Set the value for the placeholder
+            preparedStatement.setString(1, valueToCheck);
+
+            // Execute the query
+            try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                if (resultSet.next()) {
+                    int count = resultSet.getInt(1);
+                    if (count > 0) {
+                        System.out.println("Value '" + valueToCheck + "' found in table " + tableName);
+                        return true; // Value exists in the table
+                    } else {
+                        System.out.println("Value '" + valueToCheck + "' not found in table " + tableName);
+                        return false; // Value does not exist in the table
+                    }
+                }
+            }
+        }
+        return false; // Return false if an error occurs or no rows are returned
+    }
+
+
     public void removeTeacherStudents(String tableName, String studentID) throws SQLException {
         // Ensure table name is safe from SQL injection by validating input
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
@@ -432,31 +463,69 @@ public class DatabaseManager {
         }
     }
 
-    public String checkNameInStudentsTables(String nameToCheck) throws SQLException {
-        // Step 1: Get tables ending with '_students'
-        String fetchTablesQuery = "SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%_students';";
-        try (Statement tableStmt = connection.createStatement();
-             ResultSet tableResultSet = tableStmt.executeQuery(fetchTablesQuery)) {
+        public ArrayList<String[]> checkNameInStudentsTables(String nameToCheck) throws SQLException {
+            // Create an ArrayList to store the results
+            ArrayList<String[]> resultList = new ArrayList<>();
 
-            // Step 2: Iterate over each table
-            while (tableResultSet.next()) {
-                String tableName = tableResultSet.getString("table_name");
+            // Step 1: Get tables ending with '_students'
+            String fetchTablesQuery = "SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%_students';";
 
-                // Step 2a: Check if 'StudentID' exists in this table and search for the name in 'StudentID'
-                String checkNameQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?";
-                try (PreparedStatement nameStmt = connection.prepareStatement(checkNameQuery)) {
-                    nameStmt.setString(1, nameToCheck);
-                    try (ResultSet nameResultSet = nameStmt.executeQuery()) {
-                        if (nameResultSet.next() && nameResultSet.getInt(1) > 0) {
-                            return "Name '" + nameToCheck + "' found in table '" + tableName + "' under StudentID column.";
+            try (Statement tableStmt = connection.createStatement();
+                 ResultSet tableResultSet = tableStmt.executeQuery(fetchTablesQuery)) {
+
+                // Step 2: Iterate over each table
+                while (tableResultSet.next()) {
+                    String tableName = tableResultSet.getString("table_name");
+                    System.out.println("Found _students table: " + tableName);
+
+                    // Step 2a: Check if 'StudentID' exists in this table and search for the name in 'StudentID'
+                    String checkNameQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?";
+                    try (PreparedStatement nameStmt = connection.prepareStatement(checkNameQuery)) {
+                        nameStmt.setString(1, nameToCheck);
+                        try (ResultSet nameResultSet = nameStmt.executeQuery()) {
+                            if (nameResultSet.next() && nameResultSet.getInt(1) > 0) {
+                                System.out.println("Found student '" + nameToCheck + "' in table: " + tableName);
+
+                                // Step 3: After finding the student, get the corresponding 'main' table
+                                String mainTableName = tableName.replace("_students", "_main");
+                                System.out.println("Main table corresponding to _students table: " + mainTableName);
+
+                                // Step 4: Query the corresponding main table for ClassName, StartTime, and EndTime
+                                String getClassDetailsQuery = "SELECT ClassName, StartTime, EndTime FROM " + mainTableName;
+                                try (Statement mainTableStmt = connection.createStatement();
+                                     ResultSet classResultSet = mainTableStmt.executeQuery(getClassDetailsQuery)) {
+
+                                    if (classResultSet.next()) {
+                                        String className = classResultSet.getString("ClassName");
+                                        String startTime = classResultSet.getString("StartTime");
+                                        String endTime = classResultSet.getString("EndTime");
+
+                                        // Store the results in the ArrayList
+                                        resultList.add(new String[]{
+                                                mainTableName,
+                                                className,
+                                                startTime,
+                                                endTime
+                                        });
+
+                                        // Print the results (for debugging purposes)
+//                                        System.out.println("Class details found in main table:");
+//                                        System.out.println("Class Name: " + className);
+//                                        System.out.println("Start Time: " + startTime);
+//                                        System.out.println("End Time: " + endTime);
+                                    } else {
+                                        // If no class details are found in the main table
+                                        System.out.println("No class details found in main table for " + mainTableName);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
+            // Return the result list containing all found occurrences
+            return resultList;
         }
-        return "Name '" + nameToCheck + "' not found in any '_students' table.";
-    }
-
 
     public String[] getTeacherStudents(String tableName) throws SQLException {
         // Ensure table name is safe from SQL injection by validating input
