@@ -1,5 +1,7 @@
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -16,7 +18,8 @@ public class StudentHome extends JPanel {
     private int minutesUntilEndOfClass; // Variable to store minutes left
     private Timer timer; // Timer for updating every 60 seconds
     private JPanel topBar;  // Declare a topBar reference at the class level
-
+    JTable studentTable = new JTable();
+    DefaultTableModel tableModel;
 
     public StudentHome(JFrame frame) throws SQLException {
         this.frame = frame;
@@ -46,7 +49,17 @@ public class StudentHome extends JPanel {
 
             ArrayList<String[]> results = databaseManager.checkNameInStudentsTables(userName);
             if (results.isEmpty()) {
-                System.out.println("No records found for the student.");
+                String noRecords = "No records found for the student.";
+
+                JLabel messageLabel = new JLabel(noRecords, JLabel.CENTER);  // LEFT for text alignment
+                messageLabel.setForeground(Color.RED);  // Set the color of the text
+                messageLabel.setFont(new Font("Georgia", Font.BOLD, 14));  // Set the font to Georgia, plain style, size 16
+                // Set the position of each label (you can modify x and y as needed)
+                messageLabel.setBounds(20, 35, 360, 20);  // x, y, width, height
+
+                // Add the label to the panel
+                this.add(messageLabel);
+
             } else {
                 for (String[] result : results) {
                     System.out.println("Main Table: " + result[0]);

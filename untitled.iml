@@ -16,7 +16,7 @@
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="module-library">
+    <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
           <root url="file://C:/Users/Desktop/LAMMPS/mysql-connector-j-9.1.0" />
@@ -45,14 +45,14 @@
           <root url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0/src/main/user-impl/java" />
           <root url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0/src/test/java" />
         </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0" recursive="false" />
         <jarDirectory url="file://C:/Users/Desktop/LAMMPS/mysql-connector-j-9.1.0" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../mysql-connector-j-9.1.0" recursive="false" />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../mysql-connector-j-9.1.0.jar!/" />
+          <root url="jar://$USER_HOME$/mysql-connector-j-9.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -61,7 +61,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../javamail1_4_7/javamail-1.4.7/mail.jar!/" />
+          <root url="jar://$USER_HOME$/javamail1_4_7/javamail-1.4.7/mail.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -70,7 +70,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../jaf-1_1_1/jaf-1.1.1/activation.jar!/" />
+          <root url="jar://$USER_HOME$/jaf-1_1_1/jaf-1.1.1/activation.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -79,7 +79,7 @@
     <orderEntry type="module-library" exported="">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../Desktop/LAMMPS/mysql-connector-j-9.1.0/mysql-connector-j-9.1.0.jar!/" />
+          <root url="jar://C:/Users/Desktop/LAMMPS/mysql-connector-j-9.1.0/mysql-connector-j-9.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

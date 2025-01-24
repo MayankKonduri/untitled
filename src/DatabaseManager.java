@@ -35,7 +35,8 @@ import java.util.List;
 
 public class DatabaseManager {
     // JDBC URL, username, and password for the local database
-    private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient";
+    //private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; //Home
+    private static final String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient";//School
     private static final String DATABASE_USER = "root"; // Replace with your MySQL username
     private static final String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 

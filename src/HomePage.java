@@ -221,8 +221,8 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
-
+            // connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password"); //Home
+               connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient", "root", "password"); //School
             // Ensure the database exists
             statement = connection.createStatement();
             String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
@@ -266,7 +266,8 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+            // connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password"); //Home
+            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient", "root", "password"); //School
 
             // Ensure the database exists
             statement = connection.createStatement();
