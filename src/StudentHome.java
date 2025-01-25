@@ -53,6 +53,7 @@ public class StudentHome extends JPanel {
                     System.out.println("Class Name: " + result[1]);
                     System.out.println("Start Time: " + result[2]);
                     System.out.println("End Time: " + result[3]);
+                    System.out.println("Wait Time: " + result[4]);
                     System.out.println("-------------------------");
                 }
             }
