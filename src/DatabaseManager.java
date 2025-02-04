@@ -21,6 +21,7 @@ import java.sql.Statement;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 
 import java.io.BufferedReader;
@@ -259,11 +260,12 @@ public class DatabaseManager {
 
     //---------------  Students ---------------------------------------//
 
-    public void addToStudents(String studentID) {
-        String query = "INSERT INTO Student (student_id) VALUES (?)";
+    public void addToStudents(String studentID, String studentNickname) {
+        String query = "INSERT INTO Student (student_id, student_nickname) VALUES (?, ?)";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, studentID);
+            stmt.setString(2, studentNickname);
             stmt.executeUpdate();
             System.out.println("Student added successfully!");
         } catch (SQLException e) {
@@ -310,9 +312,9 @@ public class DatabaseManager {
         }
     }
 
-    public String[] getStudent(String studentID) {
+    public ArrayList getStudent(String studentID) {
         String query = "SELECT * FROM Student WHERE student_id = ?";
-        String[] studentDetails = new String[1];  // Array to store student details
+        ArrayList<String> studentDetails = new ArrayList<>();  // Array to store student details
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, studentID);
@@ -320,21 +322,21 @@ public class DatabaseManager {
 
             if (rs.next()) {
                 // Populate the array with the student's details
-                studentDetails[0] = rs.getString("student_id");  // student_id
+                studentDetails.add(rs.getString(1));
+                studentDetails.add(rs.getString(2));
             } else {
                 // If no student is found, return a message in the array
-                studentDetails = new String[] {"No student found with ID: " + studentID};
+                studentDetails.add("No student found with ID: " + studentID);
             }
         } catch (SQLException e) {
             System.err.println("Error fetching student details.");
             e.printStackTrace();
-            studentDetails = new String[] {"Error fetching data"};
+            studentDetails.clear();
+            studentDetails.add("Error Fetching Data");
         }
 
         return studentDetails;
     }
-
-
 
     //---------------  Students ---------------------------------------//
     //----

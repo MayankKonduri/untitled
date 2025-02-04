@@ -202,12 +202,32 @@ public class HomePage extends JPanel {
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-                frame.getContentPane().removeAll();
+                if(dbManager.checkStudentExists(userName)) {
+                    frame.getContentPane().removeAll();
                     frame.revalidate();
                     frame.repaint();
                     frame.setSize(400, 325);
                     frame.add(studentHome);
                     frame.setVisible(true);
+                }
+                else{
+                    String nickname = JOptionPane.showInputDialog(frame, "Enter your nickname:", "Nickname Input", JOptionPane.PLAIN_MESSAGE);
+
+                    if (nickname != null && !nickname.trim().isEmpty()) {
+                        // Process the entered nickname
+                        System.out.println("Entered nickname: " + nickname);
+
+                        dbManager.addToStudents(userName, nickname);
+                        frame.getContentPane().removeAll();
+                        frame.revalidate();
+                        frame.repaint();
+                        frame.setSize(400, 325);
+                        frame.add(studentHome);
+                        frame.setVisible(true);
+                    } else {
+                        System.out.println("No nickname entered.");
+                    }
+                }
             }
         });
     }

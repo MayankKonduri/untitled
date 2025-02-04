@@ -24,7 +24,7 @@ public class StudentHome extends JPanel {
     public StudentHome(JFrame frame) throws SQLException {
         this.frame = frame;
         this.databaseManager = new DatabaseManager();  // Initialize database manager
-
+        System.out.println(databaseManager.getStudent(userName));
         // Set layout manager for the panel
         this.setLayout(new BorderLayout());
 
