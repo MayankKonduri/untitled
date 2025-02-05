@@ -302,9 +302,6 @@ public class HomePage extends JPanel {
             }
         }
     }
-
-<<<<<<< Updated upstream
-=======
     private void createTableQuestions(String tableCreation3) {
         Connection connection = null;
         Statement statement = null;
@@ -352,7 +349,6 @@ public class HomePage extends JPanel {
         }
     }
 
->>>>>>> Stashed changes
     // Regular expression for valid names (no spaces, special characters, numbers)
     private boolean isValidName(String name) {
         String regex = "^[a-zA-Z_]+$";  // Only letters and underscores are allowed

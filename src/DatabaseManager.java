@@ -21,6 +21,7 @@ import java.sql.Statement;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 import java.io.BufferedReader;
@@ -527,9 +528,6 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
-
-<<<<<<< Updated upstream
-=======
     public static void addRecordToTable(String tableName, String studentID, String questionSummary) {
         // Ensure table name is safe from SQL injection by validating input
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
@@ -792,7 +790,6 @@ public class DatabaseManager {
                 e.printStackTrace();
             }
         }
->>>>>>> Stashed changes
 
 
 
