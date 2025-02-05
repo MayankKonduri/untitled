@@ -633,7 +633,7 @@ public class DatabaseManager {
 
         try {
             // SQL query to insert data into the specified table
-            String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp) VALUES (?, ?, ?)";
+            String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive) VALUES (?, ?, ?, ?)";
 
             String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
@@ -651,7 +651,10 @@ public class DatabaseManager {
 
             // Use java.sql.Timestamp to insert the current time correctly in SQL format
             preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now())); // Current timestamp (Timestamp)
+
+            // Set the value for the "IsQuestionActive" column (true in this case)
             preparedStatement.setBoolean(4, true);
+
             // Execute the insert statement
             int rowsAffected = preparedStatement.executeUpdate();
 
@@ -679,5 +682,116 @@ public class DatabaseManager {
             }
         }
     }
+
+    public static String getQuestionStudent(String questionTableName, String studentID) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // SQL query to retrieve the QuestionSummary for the given studentID and where IsQuestionActive is 1
+            String selectSQL = "SELECT QuestionSummary FROM " + questionTableName + " WHERE StudentID = ? AND IsQuestionActive = 1";
+
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_USER = "root"; // Replace with your MySQL username
+            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+
+            // Establish connection to the database
+            connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+            // Create a prepared statement to prevent SQL injection
+            preparedStatement = connection.prepareStatement(selectSQL);
+
+            // Set the parameter for the prepared statement (studentID)
+            preparedStatement.setString(1, studentID);
+
+            // Execute the query and get the result set
+            resultSet = preparedStatement.executeQuery();
+
+            // If there's a result, return the QuestionSummary, otherwise return an empty string
+            if (resultSet.next()) {
+                System.out.println("Find Successful");
+                return resultSet.getString("QuestionSummary");
+            } else {
+                return "";  // No active question for the given studentID
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "";  // Return empty string in case of any error
+        } finally {
+            // Close resources to prevent memory leaks
+            try {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close(); // Ensure the connection is also closed
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void deactivateQuestion(String tableName, String studentID, String questionSummary) {
+        // Ensure table name is safe from SQL injection by validating input
+        if (!tableName.matches("[a-zA-Z0-9_]+")) {
+            throw new IllegalArgumentException("Invalid table name.");
+        }
+
+        PreparedStatement preparedStatement = null;
+        Connection connection = null;
+
+        try {
+            // SQL query to update IsQuestionActive to false (0) for the specified studentID and questionSummary
+            String updateSQL = "UPDATE " + tableName + " SET IsQuestionActive = ? WHERE StudentID = ? AND QuestionSummary = ?";
+
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_USER = "root"; // Replace with your MySQL username
+            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+
+            // Establish connection to the database
+            connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+            // Create a prepared statement to prevent SQL injection
+            preparedStatement = connection.prepareStatement(updateSQL);
+
+            // Set parameters for the PreparedStatement
+            preparedStatement.setBoolean(1, false); // Set IsQuestionActive to false (0)
+            preparedStatement.setString(2, studentID); // Set StudentID
+            preparedStatement.setString(3, questionSummary); // Set QuestionSummary
+
+            // Execute the update statement
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            // Check if the update was successful
+            if (rowsAffected > 0) {
+                System.out.println("Question successfully deactivated.");
+            } else {
+                System.out.println("Failed to deactivate question. No matching record found.");
+            }
+
+        } catch (SQLException e) {
+            // Handle SQL exception
+            e.printStackTrace();
+        } finally {
+            // Close resources to prevent memory leaks
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close(); // Ensure the connection is also closed
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
 }

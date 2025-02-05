@@ -19,6 +19,7 @@ public class StudentHome extends JPanel {
     private DatabaseManager databaseManager;
     private String userName = System.getProperty("user.name");
 
+    public String questionTableName;
     private int minutesUntilEndOfClass; // Variable to store minutes left
     private Timer timer; // Timer for updating every 60 seconds
     private JPanel topBar;  // Declare a topBar reference at the class level
@@ -333,6 +334,29 @@ public class StudentHome extends JPanel {
         //------------------------- Header --------------------------//
         //-------------------- Question Table -----------------------//
 
+        // Add buttons below the table
+        JPanel buttonPanel = new JPanel();  // Create a new panel for buttons
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));  // Center the buttons horizontally
+        buttonPanel.setBounds(15, yPosition + labelHeight + 140, 360, 40);  // Set the position of the button panel
+
+// Create "Add Question" and "Remove Question" buttons
+        JButton addQuestionButton = new JButton("Add Question");
+        addQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
+        JButton removeQuestionButton = new JButton("Remove Question");
+        removeQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
+        addQuestionButton.setBounds(15,yPosition+labelHeight+140,360,25);
+        removeQuestionButton.setBounds(15,yPosition+labelHeight+140,360,25);
+
+        add(addQuestionButton);
+        add(removeQuestionButton);
+        // Add buttons to the button panel
+        //buttonPanel.add(addQuestionButton);
+        //buttonPanel.add(removeQuestionButton);
+
+// Add the button panel to the main panel
+        //add(buttonPanel);
+
+
         ArrayList<String[]> results1 = null;
         try {
             results1 = databaseManager.checkNameInStudentsTables(userName);
@@ -343,10 +367,54 @@ public class StudentHome extends JPanel {
             System.out.println("No records found for the student.");
         }
 
-        // Sample data for the table (you can replace this with your actual data)
+
+        ArrayList<String[]> results = null;
+        try {
+            results = databaseManager.checkNameInStudentsTables(userName);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+        if (results.isEmpty()) {
+            System.out.println("No records found for the student.");
+        }
+        for (int i = 0; i < results.size(); i++) {
+            try {
+                // Convert the strings in results[2] and results[3] to LocalTime
+                LocalTime startTime = LocalTime.parse((String) results.get(i)[2]);  // Parse the start time string
+                LocalTime endTime = LocalTime.parse((String) results.get(i)[3]);    // Parse the end time string
+
+                // Check if the current time is within the range
+                if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                    String result = (String) results.get(i)[0]; // Get the value from the array (ensure it's a String)
+
+                    // Check if the result matches the pattern "something_X_main" and modify it
+                    if (result.matches(".*_\\d+_main")) {  // Regex to match something_X_main
+                        questionTableName = result.replace("_main", "_questions"); // Replace "_main" with "_questions"
+                    }
+                    // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
+                }
+            } catch (DateTimeParseException e1) {
+                // Handle the case where the string cannot be parsed into a LocalTime
+                System.out.println("Invalid time format in results: " + e1.getMessage());
+            }
+        }
+
+        String input = databaseManager.getQuestionStudent(questionTableName, userName);
         String[][] rowData = {
                 {""}
         };
+        if(input.equals("")){
+            // Sample data for the table (you can replace this with your actual data)
+            rowData[0][0] = "";
+            addQuestionButton.setVisible(true);
+            removeQuestionButton.setVisible(false);
+        }
+        else{
+            rowData[0][0] = input;
+            addQuestionButton.setVisible(false);
+            removeQuestionButton.setVisible(true);
+        }
+
 
 // Column headers for the table
         String[] columnNames = {"Question Summary"};
@@ -386,17 +454,6 @@ public class StudentHome extends JPanel {
         if(questionTable.getValueAt(0,0).equals("")){
             questionTable.setValueAt("No Active Question", 0, 0);
         }
-
-// Add buttons below the table
-        JPanel buttonPanel = new JPanel();  // Create a new panel for buttons
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));  // Center the buttons horizontally
-        buttonPanel.setBounds(15, yPosition + labelHeight + 140, 360, 40);  // Set the position of the button panel
-
-// Create "Add Question" and "Remove Question" buttons
-        JButton addQuestionButton = new JButton("Add Question");
-        addQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
-        JButton removeQuestionButton = new JButton("Remove Question");
-        removeQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
 
 // Add action listeners for the buttons
         addQuestionButton.addActionListener(new ActionListener() {
@@ -445,6 +502,8 @@ public class StudentHome extends JPanel {
 
                 } else {
                 }
+                addQuestionButton.setVisible(false);
+                removeQuestionButton.setVisible(true);
             }
         });
 
@@ -453,7 +512,6 @@ public class StudentHome extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 // Check the value in the table
                 String currentQuestion = (String) questionTable.getValueAt(0, 0); // Assuming only one row in the table
-
                 if ("No Active Question".equals(currentQuestion)) {
                     // Create a custom panel with a JLabel for the message
                     JPanel panel = new JPanel();
@@ -464,6 +522,40 @@ public class StudentHome extends JPanel {
                     // Show the dialog with the custom panel
                     JOptionPane.showMessageDialog(null, panel, "Error", JOptionPane.ERROR_MESSAGE);
                 } else {
+
+                ArrayList<String[]> results2 = null;
+                try {
+                    results2 = databaseManager.checkNameInStudentsTables(userName);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                if (results2.isEmpty()) {
+                    System.out.println("No records found for the student.");
+                }
+                for (int i = 0; i < results2.size(); i++) {
+                    try {
+                        // Convert the strings in results[2] and results[3] to LocalTime
+                        LocalTime startTime = LocalTime.parse((String) results2.get(i)[2]);  // Parse the start time string
+                        LocalTime endTime = LocalTime.parse((String) results2.get(i)[3]);    // Parse the end time string
+
+                        // Check if the current time is within the range
+                        if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                            String result = (String) results2.get(i)[0]; // Get the value from the array (ensure it's a String)
+
+                            // Check if the result matches the pattern "something_X_main" and modify it
+                            if (result.matches(".*_\\d+_main")) {  // Regex to match something_X_main
+                                result = result.replace("_main", "_questions"); // Replace "_main" with "_questions"
+                            }
+
+                            // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
+                            DatabaseManager.deactivateQuestion(result, userName, currentQuestion);
+                        }
+                    } catch (DateTimeParseException e1) {
+                        // Handle the case where the string cannot be parsed into a LocalTime
+                        System.out.println("Invalid time format in results: " + e1.getMessage());
+                    }
+                }
+
                     // Handle the Remove Question action if there is an active question
                     System.out.println("Remove Question button clicked");
 
@@ -478,16 +570,12 @@ public class StudentHome extends JPanel {
 
                     // Show confirmation dialog
                     JOptionPane.showMessageDialog(null, panel, "Success", JOptionPane.INFORMATION_MESSAGE);
+
                 }
+                addQuestionButton.setVisible(true);
+                removeQuestionButton.setVisible(false);
             }
         });
-
-// Add buttons to the button panel
-        buttonPanel.add(addQuestionButton);
-        buttonPanel.add(removeQuestionButton);
-
-// Add the button panel to the main panel
-        add(buttonPanel);
 
 // Revalidate and repaint the panel to ensure changes are reflected
         revalidate();
