@@ -30,10 +30,19 @@ public class StudentHome extends JPanel {
             messageLabel.setForeground(Color.RED); // Set the color of the text
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
         } else {
+<<<<<<< Updated upstream
             JLabel messageLabel = new JLabel("Not a Teacher", JLabel.CENTER);
             messageLabel.setFont(georgiaFont);
             messageLabel.setForeground(Color.GREEN); // Green color for non-teacher
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
+=======
+                    // Database connection details
+                    //String url = "jdbc:mysql://192.168.1.14/qclient"; // Replace with your database URL
+                    String url = "jdbc:mysql://10.66.223.162/qclient1";
+                    String user = "root"; // Replace with your DB username
+                    String password = "password"; // Replace with your DB password
+                    String tableName = userName + "_waitTime"; // Concatenate userName with "_waitTime"
+>>>>>>> Stashed changes
 
             System.out.println(databaseManager.checkNameInStudentsTables(userName));
         }

@@ -221,11 +221,13 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+            //connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.66.223.162/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
-            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
+            //String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
+            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient1'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
             // Create SQL query to create the table
@@ -265,12 +267,13 @@ public class HomePage extends JPanel {
             // Load the JDBC driver
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+            //connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.66.223.162/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
-            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
+            //String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
+            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient1'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
             // Create SQL query to create the table
@@ -300,6 +303,56 @@ public class HomePage extends JPanel {
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    private void createTableQuestions(String tableCreation3) {
+        Connection connection = null;
+        Statement statement = null;
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            //connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.66.223.162/qclient1", "root", "password");
+
+            // Ensure the database exists
+            statement = connection.createStatement();
+            // checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
+            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient1'";
+            ResultSet rs = statement.executeQuery(checkDatabaseSQL);
+
+            // Create SQL query to create the table
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableCreation3 + " (" +
+                    "StudentID VARCHAR(100), " +
+                    "QuestionSummary VARCHAR(300), " +
+                    "TimeStamp TIME, " +  // Corrected comma
+                    "IsQuestionActive BOOLEAN" +  // Corrected column definition and removed trailing comma
+                    ")";
+
+            // Execute the SQL query to create the table
+            statement.executeUpdate(createTableSQL);
+            System.out.println("Table " + tableCreation3 + " created successfully.");
+
+        } catch (SQLException | ClassNotFoundException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            // Close resources
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+>>>>>>> Stashed changes
     // Regular expression for valid names (no spaces, special characters, numbers)
     private boolean isValidName(String name) {
         String regex = "^[a-zA-Z_]+$";  // Only letters and underscores are allowed

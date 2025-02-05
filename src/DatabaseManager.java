@@ -35,7 +35,8 @@ import java.util.List;
 
 public class DatabaseManager {
     // JDBC URL, username, and password for the local database
-    private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient";
+    //private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient";
+    private static final String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1";
     private static final String DATABASE_USER = "root"; // Replace with your MySQL username
     private static final String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -527,6 +528,271 @@ public class DatabaseManager {
         }
     }
 
+<<<<<<< Updated upstream
+=======
+    public static void addRecordToTable(String tableName, String studentID, String questionSummary) {
+        // Ensure table name is safe from SQL injection by validating input
+        if (!tableName.matches("[a-zA-Z0-9_]+")) {
+            throw new IllegalArgumentException("Invalid table name.");
+        }
+
+        PreparedStatement preparedStatement = null;
+        Connection connection = null;
+
+        try {
+            // SQL query to insert data into the specified table
+            String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive) VALUES (?, ?, ?, ?)";
+
+            //String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_URL =  "jdbc:mysql://10.66.223.162/qclient1";
+            String DATABASE_USER = "root"; // Replace with your MySQL username
+            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+
+            // Establish connection to the database
+            connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+            // Create a prepared statement to prevent SQL injection
+            preparedStatement = connection.prepareStatement(insertSQL);
+
+            // Set parameters for the PreparedStatement
+            preparedStatement.setString(1, studentID); // StudentID
+            preparedStatement.setString(2, questionSummary); // QuestionSummary
+
+            // Use java.sql.Timestamp to insert the current time correctly in SQL format
+            preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now())); // Current timestamp (Timestamp)
+
+            // Set the value for the "IsQuestionActive" column (true in this case)
+            preparedStatement.setBoolean(4, true);
+
+            // Execute the insert statement
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            // Check if the insertion was successful
+            if (rowsAffected > 0) {
+                System.out.println("Record successfully added to the table.");
+            } else {
+                System.out.println("Failed to add record to the table.");
+            }
+
+        } catch (SQLException e) {
+            // Handle SQL exception
+            e.printStackTrace();
+        } finally {
+            // Close resources to prevent memory leaks
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close(); // Ensure the connection is also closed
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static String getQuestionStudent(String questionTableName, String studentID) {
+        Connection connection = null;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+
+        try {
+            // SQL query to retrieve the QuestionSummary for the given studentID and where IsQuestionActive is 1
+            String selectSQL = "SELECT QuestionSummary FROM " + questionTableName + " WHERE StudentID = ? AND IsQuestionActive = 1";
+
+            //String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1";
+
+            String DATABASE_USER = "root"; // Replace with your MySQL username
+            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+
+            // Establish connection to the database
+            connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+            // Create a prepared statement to prevent SQL injection
+            preparedStatement = connection.prepareStatement(selectSQL);
+
+            // Set the parameter for the prepared statement (studentID)
+            preparedStatement.setString(1, studentID);
+
+            // Execute the query and get the result set
+            resultSet = preparedStatement.executeQuery();
+
+            // If there's a result, return the QuestionSummary, otherwise return an empty string
+            if (resultSet.next()) {
+                System.out.println("Find Successful");
+                return resultSet.getString("QuestionSummary");
+            } else {
+                return "";  // No active question for the given studentID
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "";  // Return empty string in case of any error
+        } finally {
+            // Close resources to prevent memory leaks
+            try {
+                if (resultSet != null) {
+                    resultSet.close();
+                }
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close(); // Ensure the connection is also closed
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void deactivateQuestion(String tableName, String studentID, String questionSummary) {
+        // Ensure table name is safe from SQL injection by validating input
+        if (!tableName.matches("[a-zA-Z0-9_]+")) {
+            throw new IllegalArgumentException("Invalid table name.");
+        }
+
+        PreparedStatement preparedStatement = null;
+        Connection connection = null;
+
+        try {
+            // SQL query to update IsQuestionActive to false (0) for the specified studentID and questionSummary
+            String updateSQL = "UPDATE " + tableName + " SET IsQuestionActive = ? WHERE StudentID = ? AND QuestionSummary = ?";
+
+            //String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1";
+
+            String DATABASE_USER = "root"; // Replace with your MySQL username
+            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+
+            // Establish connection to the database
+            connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+            // Create a prepared statement to prevent SQL injection
+            preparedStatement = connection.prepareStatement(updateSQL);
+
+            // Set parameters for the PreparedStatement
+            preparedStatement.setBoolean(1, false); // Set IsQuestionActive to false (0)
+            preparedStatement.setString(2, studentID); // Set StudentID
+            preparedStatement.setString(3, questionSummary); // Set QuestionSummary
+
+            // Execute the update statement
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            // Check if the update was successful
+            if (rowsAffected > 0) {
+                System.out.println("Question successfully deactivated.");
+            } else {
+                System.out.println("Failed to deactivate question. No matching record found.");
+            }
+
+        } catch (SQLException e) {
+            // Handle SQL exception
+            e.printStackTrace();
+        } finally {
+            // Close resources to prevent memory leaks
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close(); // Ensure the connection is also closed
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+        private boolean doesTableExist(String tableName) {
+            String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?";
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+                try (PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.setString(1, tableName);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            return resultSet.getInt(1) > 0; // If count > 0, table exists
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        // Method to check if the column exists in the specified table
+        private boolean doesColumnExist(String tableName, String columnName) {
+            String query = "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?";
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+                try (PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.setString(1, tableName);
+                    statement.setString(2, columnName);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            return resultSet.getInt(1) > 0; // If count > 0, column exists
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        // Method to insert or update the wait time in a specific table and column
+        public void insertOrUpdateWaitTime(String tableString, String columnName, int remainingTime) {
+
+            tableString = tableString.toLowerCase(); // Ensure table name is lowercase
+            System.out.println("Called: " + tableString + " " + columnName + " " + remainingTime);
+
+            // Check if the table exists
+            if (!doesTableExist(tableString)) {
+                System.out.println("Table not found: " + tableString);
+                return; // Exit the method if the table doesn't exist
+            } else {
+                System.out.println("Table found: " + tableString);
+            }
+
+            // Check if the column exists
+            if (!doesColumnExist(tableString, columnName)) {
+                System.out.println("Column not found: " + columnName);
+                return; // Exit the method if the column doesn't exist
+            } else {
+                System.out.println("Column found: " + columnName);
+            }
+
+            // SQL query to insert or update the wait time
+            String updateQuery = "UPDATE " + tableString + " SET " + columnName + " = IFNULL(" + columnName + ", ?)";
+
+            // Debugging: print the SQL query to check for correctness
+            System.out.println("Executing query: " + updateQuery);
+
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+                // Prepare the statement to insert or update the wait time
+                try (PreparedStatement statement = connection.prepareStatement(updateQuery)) {
+                    // Set the value of remainingTime in the prepared statement
+                    statement.setInt(1, remainingTime);
+
+                    // Execute the update
+                    int rowsUpdated = statement.executeUpdate();
+
+                    // Debugging: check if the update was successful
+                    if (rowsUpdated > 0) {
+                        System.out.println("Wait time inserted/updated successfully in table: " + tableString + ", column: " + columnName);
+                    } else {
+                        System.out.println("No rows updated. Check if the table exists or if the column is correct.");
+                    }
+                }
+            } catch (SQLException e) {
+                // Print stack trace for debugging
+                System.err.println("SQL Exception: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+>>>>>>> Stashed changes
 
 
 
