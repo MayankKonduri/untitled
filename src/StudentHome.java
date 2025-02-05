@@ -20,6 +20,7 @@ public class StudentHome extends JPanel {
     private String userName = System.getProperty("user.name");
 
     public String questionTableName;
+    public String waitTimeOfClass;
     private int minutesUntilEndOfClass; // Variable to store minutes left
     private Timer timer; // Timer for updating every 60 seconds
     private JPanel topBar;  // Declare a topBar reference at the class level
@@ -386,7 +387,8 @@ public class StudentHome extends JPanel {
                 // Check if the current time is within the range
                 if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
                     String result = (String) results.get(i)[0]; // Get the value from the array (ensure it's a String)
-
+                    String waitTime = (String) results.get(i)[4];
+                    waitTimeOfClass = waitTime;
                     // Check if the result matches the pattern "something_X_main" and modify it
                     if (result.matches(".*_\\d+_main")) {  // Regex to match something_X_main
                         questionTableName = result.replace("_main", "_questions"); // Replace "_main" with "_questions"
@@ -398,7 +400,7 @@ public class StudentHome extends JPanel {
                 System.out.println("Invalid time format in results: " + e1.getMessage());
             }
         }
-
+        System.out.println("Test: " + waitTimeOfClass);
         String input = databaseManager.getQuestionStudent(questionTableName, userName);
         String[][] rowData = {
                 {""}
