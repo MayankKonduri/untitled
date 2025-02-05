@@ -1,16 +1,4 @@
 import java.sql.*;
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.text.MaskFormatter;
-
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,19 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Date;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -792,6 +769,133 @@ public class DatabaseManager {
             }
         }
     }
+
+        private boolean doesTableExist(String tableName) {
+            String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?";
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+                try (PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.setString(1, tableName);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            return resultSet.getInt(1) > 0; // If count > 0, table exists
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        // Method to check if the column exists in the specified table
+        private boolean doesColumnExist(String tableName, String columnName) {
+            String query = "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?";
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+                try (PreparedStatement statement = connection.prepareStatement(query)) {
+                    statement.setString(1, tableName);
+                    statement.setString(2, columnName);
+                    try (ResultSet resultSet = statement.executeQuery()) {
+                        if (resultSet.next()) {
+                            return resultSet.getInt(1) > 0; // If count > 0, column exists
+                        }
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+
+        // Method to insert or update the wait time in a specific table and column
+        public void insertOrUpdateWaitTime(String tableString, String columnName, int remainingTime) {
+
+            tableString = tableString.toLowerCase(); // Ensure table name is lowercase
+            System.out.println("Called: " + tableString + " " + columnName + " " + remainingTime);
+
+            // Check if the table exists
+            if (!doesTableExist(tableString)) {
+                System.out.println("Table not found: " + tableString);
+                return; // Exit the method if the table doesn't exist
+            } else {
+                System.out.println("Table found: " + tableString);
+            }
+
+            // Check if the column exists
+            if (!doesColumnExist(tableString, columnName)) {
+                System.out.println("Column not found: " + columnName);
+                return; // Exit the method if the column doesn't exist
+            } else {
+                System.out.println("Column found: " + columnName);
+            }
+
+            // SQL query to insert or update the wait time
+            String updateQuery = "UPDATE " + tableString + " SET " + columnName + " = IFNULL(" + columnName + ", ?)";
+
+            // Debugging: print the SQL query to check for correctness
+            System.out.println("Executing query: " + updateQuery);
+
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+                // Prepare the statement to insert or update the wait time
+                try (PreparedStatement statement = connection.prepareStatement(updateQuery)) {
+                    // Set the value of remainingTime in the prepared statement
+                    statement.setInt(1, remainingTime);
+
+                    // Execute the update
+                    int rowsUpdated = statement.executeUpdate();
+
+                    // Debugging: check if the update was successful
+                    if (rowsUpdated > 0) {
+                        System.out.println("Wait time inserted/updated successfully in table: " + tableString + ", column: " + columnName);
+                    } else {
+                        System.out.println("No rows updated. Check if the table exists or if the column is correct.");
+                    }
+                }
+            } catch (SQLException e) {
+                // Print stack trace for debugging
+                System.err.println("SQL Exception: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+    public int getWaitTimeFromStudent(String tableString, String columnName) {
+        int result = -1;  // Default value if the column doesn't exist or an error occurs
+
+        // Build the dynamic select query
+        String selectQuery = "SELECT " + columnName + " FROM " + tableString;
+
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+            // Prepare the statement for the SELECT query
+            try (PreparedStatement statement = connection.prepareStatement(selectQuery)) {
+                // Execute the query and get the result set
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    // Check if the result set has any rows
+                    if (resultSet.next()) {
+                        // Retrieve the value from the column (assuming it's an integer)
+                        result = resultSet.getInt(columnName); // Get the value from the specific column
+                    } else {
+                        System.out.println("No data found in table: " + tableString + ", column: " + columnName);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // Return the value retrieved from the table
+        return result;
+    }
+
 
 
 }

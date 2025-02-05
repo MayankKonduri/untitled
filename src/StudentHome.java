@@ -1,5 +1,6 @@
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -8,7 +9,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -24,6 +28,7 @@ public class StudentHome extends JPanel {
     private int minutesUntilEndOfClass; // Variable to store minutes left
     private Timer timer; // Timer for updating every 60 seconds
     private JPanel topBar;  // Declare a topBar reference at the class level
+    public int periodNumber;
 
 
     public StudentHome(JFrame frame) throws SQLException {
@@ -47,6 +52,38 @@ public class StudentHome extends JPanel {
             messageLabel.setForeground(Color.RED); // Set the color of the text
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
         } else {
+                    // Database connection details
+                    String url = "jdbc:mysql://192.168.1.14/qclient"; // Replace with your database URL
+                    String user = "root"; // Replace with your DB username
+                    String password = "password"; // Replace with your DB password
+                    String tableName = userName + "_waitTime"; // Concatenate userName with "_waitTime"
+
+                    // SQL query to create the table if it doesn't exist
+                    String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableName + " ("
+                            + "ID INT AUTO_INCREMENT PRIMARY KEY, "
+                            + "WaitTime_1 INT, "
+                            + "WaitTime_2 INT, "
+                            + "WaitTime_3 INT, "
+                            + "WaitTime_4 INT, "
+                            + "WaitTime_5 INT, "
+                            + "WaitTime_6 INT, "
+                            + "WaitTime_7 INT"
+                            + ")";
+
+                    // Establish connection and execute the query
+                    try (Connection connection = DriverManager.getConnection(url, user, password);
+                         Statement statement = connection.createStatement()) {
+
+                        // Execute the SQL query to create the table if it doesn't already exist
+                        statement.executeUpdate(createTableSQL);
+                        System.out.println("Table '" + tableName + "' created successfully (if not exists).");
+
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+
+
+
 //            JLabel messageLabel = new JLabel("Not a Teacher", JLabel.CENTER);
 //            messageLabel.setFont(georgiaFont);
 //            messageLabel.setForeground(Color.GREEN); // Green color for non-teacher
@@ -328,9 +365,38 @@ public class StudentHome extends JPanel {
         classLabel.setBounds(xPosition, yPosition, labelWidth, labelHeight);
         add(classLabel);
 
+        // Create the panel for the light blue bar (background)
+        JPanel waitTimePanel = new JPanel();
+        waitTimePanel.setBackground(new Color(255, 182, 193)); // Light red (pinkish) color
+        waitTimePanel.setLayout(new BorderLayout());
+
+        // Create a label for the Wait Time text
+        JLabel waitTimeLabel = new JLabel("Wait Time: 0 seconds", SwingConstants.CENTER);
+        waitTimeLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
+        waitTimeLabel.setForeground(Color.BLACK);  // Set text color
+        waitTimePanel.setBorder(new LineBorder(Color.BLACK, 2)); // Black border with thickness of 2
+        // Add the waitTimeLabel to the panel
+        waitTimePanel.add(waitTimeLabel, BorderLayout.CENTER);
+
+        // Calculate the position to place the Wait Time bar below the class label
+        int waitTimeLabelWidth = waitTimeLabel.getPreferredSize().width;
+        int waitTimeLabelHeight = waitTimeLabel.getPreferredSize().height;
+
+        // Set the panel size and position
+        int waitTimeXPosition = (400 - waitTimeLabelWidth) / 2;  // Center horizontally
+        int waitTimeYPosition = yPosition + labelHeight + 10;  // 10px gap below class label
+
+        waitTimePanel.setBounds(waitTimeXPosition-123, waitTimeYPosition + 30, waitTimeLabelWidth + 58, waitTimeLabelHeight+10);
+
+        // Add the panel to the frame
+        add(waitTimePanel);
+
         // Revalidate and repaint the panel to ensure changes are reflected
         revalidate();
         repaint();
+
+
+
 
         //------------------------- Header --------------------------//
         //-------------------- Question Table -----------------------//
@@ -389,17 +455,21 @@ public class StudentHome extends JPanel {
                     String result = (String) results.get(i)[0]; // Get the value from the array (ensure it's a String)
                     String waitTime = (String) results.get(i)[4];
                     waitTimeOfClass = waitTime;
+                    periodNumber = extractNumberFromTableName(result);
                     // Check if the result matches the pattern "something_X_main" and modify it
                     if (result.matches(".*_\\d+_main")) {  // Regex to match something_X_main
                         questionTableName = result.replace("_main", "_questions"); // Replace "_main" with "_questions"
                     }
                     // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
+
                 }
             } catch (DateTimeParseException e1) {
                 // Handle the case where the string cannot be parsed into a LocalTime
                 System.out.println("Invalid time format in results: " + e1.getMessage());
             }
         }
+        waitTimeLabel.setText("Wait Time: " + 0 + " seconds");
+        waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
         System.out.println("Test: " + waitTimeOfClass);
         String input = databaseManager.getQuestionStudent(questionTableName, userName);
         String[][] rowData = {
@@ -415,6 +485,11 @@ public class StudentHome extends JPanel {
             rowData[0][0] = input;
             addQuestionButton.setVisible(false);
             removeQuestionButton.setVisible(true);
+
+            String tableString = userName + "_" + "waittime";
+            String columnName = "WaitTime_" + periodNumber;
+            int loadWaitTime = databaseManager.getWaitTimeFromStudent(tableString,columnName);
+            startCountdown(waitTimeLabel, loadWaitTime, waitTimePanel, addQuestionButton);
         }
 
 
@@ -576,6 +651,8 @@ public class StudentHome extends JPanel {
                 }
                 addQuestionButton.setVisible(true);
                 removeQuestionButton.setVisible(false);
+                startCountdown(waitTimeLabel, Integer.parseInt(waitTimeOfClass), waitTimePanel, addQuestionButton);
+                addQuestionButton.setEnabled(false);
             }
         });
 
@@ -615,6 +692,49 @@ public class StudentHome extends JPanel {
             }
         });
 
+    }
+
+
+    // Method to start the countdown and update the label
+    private void startCountdown(JLabel waitTimeLabel, int startTimeInSeconds, JPanel waitTimePanel, JButton addQuestionButton) {
+        // Create a Timer to update the label every second
+        Timer timer = new Timer(1000, new ActionListener() {
+            private int remainingTime = startTimeInSeconds;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (remainingTime >= 0) {
+                    if(remainingTime>10){
+                        waitTimePanel.setBackground(new Color(255, 182, 193)); // Light red (pinkish) color
+                    }
+                    // Update the label with the current remaining time
+                    waitTimeLabel.setText("Wait Time: " + remainingTime + " seconds");
+
+                    // Change the text color to red when the time is 10 seconds
+                    if (remainingTime == 10) {
+                        waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
+                    }
+
+                    remainingTime--;  // Decrement the time by 1 second
+                    String tableString = userName + "_" + "waittime";
+                    String columnName = "WaitTime_" + periodNumber;
+                    databaseManager.insertOrUpdateWaitTime(tableString, columnName, remainingTime);
+                } else {
+                    // Stop the timer when the countdown reaches zero
+                    ((Timer) e.getSource()).stop();
+                    waitTimeLabel.setText("Wait Time: 0 seconds");  // Optional: Show "0 seconds" at the end
+                    String tableString = userName + "_" + "waittime";
+                    String columnName = "WaitTime_" + periodNumber;
+                    databaseManager.insertOrUpdateWaitTime(tableString, columnName, 0);
+                    // Optional: Reset the text color back to black after countdown ends
+                    waitTimeLabel.setForeground(Color.BLACK);
+                    addQuestionButton.setEnabled(true);
+                }
+            }
+        });
+
+        // Start the countdown timer
+        timer.start();
     }
 
 
@@ -669,5 +789,23 @@ public class StudentHome extends JPanel {
 
         // Return an array containing hours and minutes as integers
         return new int[]{Integer.parseInt(timeParts[0]), Integer.parseInt(timeParts[1])};
+    }
+
+    public static int extractNumberFromTableName(String tableName) {
+        // Split the table name by underscores
+        String[] parts = tableName.split("_");
+
+        // The second element (index 1) will be the number part
+        if (parts.length >= 3) {
+            try {
+                return Integer.parseInt(parts[1]); // Return the second part as an integer
+            } catch (NumberFormatException e) {
+                System.out.println("Error: The value between underscores is not a valid number.");
+                return -1;
+            }
+        } else {
+            System.out.println("Invalid table name format: " + tableName);
+            return -1; // Return -1 if the format is incorrect
+        }
     }
 }
