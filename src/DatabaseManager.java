@@ -394,22 +394,28 @@ public class DatabaseManager {
 
         return data;
     }
-    public void updateTeacherStudents(String tableName, String studentID) throws SQLException {
+    public void updateTeacherStudents(String tableName, String studentID, String firstN, String lastN, String nickN) throws SQLException {
         // Ensure table name is safe from SQL injection by validating input
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
 
-        // Build the SQL query with a placeholder for StudentID
-        String insertSQL = "INSERT INTO " + tableName + " (StudentID) VALUES (?)";
+        // Build the SQL query with placeholders for all fields
+        String insertSQL = "INSERT INTO " + tableName + " (StudentID, FirstName, LastName, Nickname) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertSQL)) {
-            // Set the value for the placeholder
+            // Set the values for each placeholder
             preparedStatement.setString(1, studentID);
+            preparedStatement.setString(2, firstN);
+            preparedStatement.setString(3, lastN);
+            preparedStatement.setString(4, nickN);
 
             // Execute the statement
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted into table " + tableName);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;  // Re-throw the exception if you want to propagate it
         }
     }
 
@@ -540,30 +546,35 @@ public class DatabaseManager {
     }
 
 
-    public String[] getTeacherStudents(String tableName) throws SQLException {
+    public String[][] getTeacherStudents(String tableName) throws SQLException {
         // Ensure table name is safe from SQL injection by validating input
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
 
-        // Build the SQL query
-        String selectSQL = "SELECT StudentID FROM " + tableName;
+        // Build the SQL query to select all columns (StudentID, FirstName, LastName, Nickname)
+        String selectSQL = "SELECT StudentID, FirstName, LastName, Nickname FROM " + tableName;
 
-        List<String> students = new ArrayList<>();
+        List<String[]> students = new ArrayList<>();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectSQL)) {
             // Execute the query
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    // Add each student ID to the list
-                    students.add(resultSet.getString("StudentID"));
+                    // Retrieve the values for each column and add them to the list as an array
+                    String studentId = resultSet.getString("StudentID");
+                    String firstName = resultSet.getString("FirstName");
+                    String lastName = resultSet.getString("LastName");
+                    String nickname = resultSet.getString("Nickname");
+                    students.add(new String[]{studentId, firstName, lastName, nickname});
                 }
             }
         }
 
-        // Convert the list to an array and return
-        return students.toArray(new String[0]);
+        // Convert the list to a 2D array and return
+        return students.toArray(new String[0][0]);
     }
+
 
     public void deleteTeacherAndAssociatedTables(String teacherName) {
         String deleteTeacherQuery = "DELETE FROM Teacher WHERE teacher_name = ?";

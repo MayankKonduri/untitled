@@ -275,7 +275,10 @@ public class HomePage extends JPanel {
 
             // Create SQL query to create the table
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + name + " (" +
-                    "StudentID VARCHAR(100)" +  // Removed the trailing comma
+                    "StudentID VARCHAR(100), " +
+                    "FirstName VARCHAR(100), " +
+                    "LastName VARCHAR(100), " +
+                    "Nickname VARCHAR(100)" +
                     ")";
 
             // Execute the SQL query to create the table
