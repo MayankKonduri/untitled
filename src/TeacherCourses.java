@@ -5,10 +5,12 @@ import java.awt.event.ActionListener;
 
 public class TeacherCourses extends JPanel {
     private JFrame frame;
+    private String userName;
 
-    public TeacherCourses(JFrame frame) {
+    public TeacherCourses(JFrame frame, String userName) {
         this.frame = frame;
 
+        this.userName = userName;
         // Set the layout of the panel to null for absolute positioning
         setLayout(null);
 
@@ -32,7 +34,7 @@ public class TeacherCourses extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Replace current panel with TeacherHome
-                TeacherHome teacherHome = new TeacherHome(frame);
+                TeacherHome teacherHome = new TeacherHome(frame, userName);
                 frame.getContentPane().removeAll();  // Remove all current components
                 frame.getContentPane().add(teacherHome);  // Add TeacherHome panel
                 frame.revalidate();  // Revalidate to apply changes
@@ -93,7 +95,7 @@ public class TeacherCourses extends JPanel {
         periodButton1.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 1);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 1, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout
@@ -106,7 +108,7 @@ public class TeacherCourses extends JPanel {
         periodButton2.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 2);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 2, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout
@@ -119,7 +121,7 @@ public class TeacherCourses extends JPanel {
         periodButton3.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 3);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 3, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout
@@ -132,7 +134,7 @@ public class TeacherCourses extends JPanel {
         periodButton4.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame ,4);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame ,4, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout
@@ -145,7 +147,7 @@ public class TeacherCourses extends JPanel {
         periodButton5.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 5);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 5, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout
@@ -158,7 +160,7 @@ public class TeacherCourses extends JPanel {
         periodButton6.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 6);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 6, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout
@@ -171,7 +173,7 @@ public class TeacherCourses extends JPanel {
         periodButton7.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 7);
+                TeacherPeriodView teacherPeriodView = new TeacherPeriodView(frame, 7, userName);
 
                 frame.getContentPane().removeAll();  // Remove all components from the frame
                 frame.revalidate();  // Revalidate the frame layout

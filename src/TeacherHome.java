@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 import java.util.Arrays;
 //import javax.mail.*;
 //import javax.mail.internet.*;
@@ -9,11 +10,13 @@ import java.util.Arrays;
 
 public class TeacherHome extends JPanel {
     private JFrame frame;
-    DatabaseManager dbManager = new DatabaseManager();
-    String userName = System.getProperty("user.name");
+    DatabaseManager dbManager;
+    String userName; //= System.getProperty("user.name");
 
-    public TeacherHome(JFrame frame) {
+    public TeacherHome(JFrame frame, String userName) {
         this.frame = frame;
+        this.userName = userName;
+        dbManager = new DatabaseManager(userName);
         setLayout(null);
 
         // Get teacher details from the database
@@ -35,7 +38,12 @@ public class TeacherHome extends JPanel {
         homeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                HomePage homePage = new HomePage(frame);
+                HomePage homePage = null;
+                try {
+                    homePage = new HomePage(frame, userName);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(homePage);
                 frame.revalidate();
@@ -68,7 +76,7 @@ public class TeacherHome extends JPanel {
             coursesButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    TeacherCourses teacherCourses = new TeacherCourses(frame);
+                    TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
 
                     frame.getContentPane().removeAll();  // Remove all components from the frame
                     frame.revalidate();  // Revalidate the frame layout
@@ -226,7 +234,12 @@ public class TeacherHome extends JPanel {
                                 dbManager.deleteTeacherAndAssociatedTables(pName); // Replace # with the appropriate teacher name
                                 dialog.dispose();
 
-                                HomePage homePage = new HomePage(frame);
+                                HomePage homePage = null;
+                                try {
+                                    homePage = new HomePage(frame, userName);
+                                } catch (IOException ex) {
+                                    throw new RuntimeException(ex);
+                                }
                                 frame.getContentPane().removeAll();
                                 frame.getContentPane().add(homePage);
                                 frame.revalidate();

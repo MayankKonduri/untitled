@@ -2,6 +2,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import javax.swing.*;
 import java.awt.event.*;
@@ -10,11 +13,11 @@ import java.sql.*;
 public class HomePage extends JPanel {
     private JFrame frame;
     public String fullName;
-    private String userName = System.getProperty("user.name");
+    private String userName; // = System.getProperty("user.name"); //UNCOMMENT WHEN DEPLOYING
 
-    DatabaseManager dbManager = new DatabaseManager();
-    public HomePage(JFrame frame) {
-
+    DatabaseManager dbManager = new DatabaseManager(userName);
+    public HomePage(JFrame frame, String userName) throws IOException {
+        this.userName = userName;
         if (dbManager.isConnected()) {
             System.out.println("Database connection is active!");
         } else {
@@ -24,6 +27,7 @@ public class HomePage extends JPanel {
         this.frame = frame;
 
         setLayout(null);
+
 
         JLabel titleLabel = new JLabel("Question-Client");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 18));
@@ -108,7 +112,7 @@ public class HomePage extends JPanel {
                 if (dbManager.checkTeacherExists(userName)) {
                     System.out.println("Teacher Exists");
 
-                    TeacherHome teacherHome = new TeacherHome(frame);
+                    TeacherHome teacherHome = new TeacherHome(frame, userName);
 
                     frame.getContentPane().removeAll();
                     frame.revalidate();
@@ -170,7 +174,7 @@ public class HomePage extends JPanel {
                             createTableQuestions(tableCreation3);
                         }
 
-                        TeacherHome teacherHome = new TeacherHome(frame);
+                        TeacherHome teacherHome = new TeacherHome(frame, userName);
 
                         frame.getContentPane().removeAll();  // Remove all components from the frame
                         frame.revalidate();  // Revalidate the frame layout
@@ -200,7 +204,7 @@ public class HomePage extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 StudentHome studentHome = null;
                 try {
-                    studentHome = new StudentHome(frame);
+                    studentHome = new StudentHome(frame, userName);
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -223,7 +227,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.66.223.162/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -268,7 +272,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.66.223.162/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -314,7 +318,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.66.223.162/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -415,7 +419,21 @@ public class HomePage extends JPanel {
             frame.setResizable(false);
             frame.setSize(400, 225);
 
-            HomePage homePage = new HomePage(frame);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+            String name;
+            System.out.print("Enter your name: ");
+            try {
+                name = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            HomePage homePage = null;
+            try {
+                homePage = new HomePage(frame, name);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             frame.add(homePage);
 
             frame.setVisible(true);

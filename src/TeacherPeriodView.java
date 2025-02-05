@@ -30,8 +30,8 @@ public class TeacherPeriodView extends JPanel {
     public JButton removeButton = new JButton("Remove");
     public JButton editButton = new JButton("Edit");
     public JButton infoButton = new JButton("Info");
-    DatabaseManager dbManager = new DatabaseManager();
-    String userName = System.getProperty("user.name");
+    DatabaseManager dbManager;
+    String userName; // = System.getProperty("user.name");
     JTextField classNameField;
     JFormattedTextField startTimeField;
     JFormattedTextField endTimeField;
@@ -42,10 +42,11 @@ public class TeacherPeriodView extends JPanel {
     String firstName;
     String lastName;
     String nickname;
-    public TeacherPeriodView(JFrame jFrame, int period) {
+    public TeacherPeriodView(JFrame jFrame, int period, String userName) {
 
-
+        this.userName = userName;
         this.frame = jFrame;
+        dbManager = new DatabaseManager(userName);
         this.period = String.valueOf(period);
         setLayout(null);
 
@@ -79,7 +80,7 @@ public class TeacherPeriodView extends JPanel {
                 if ((isClassNameEmpty && isStartTimeEmpty && isEndTimeEmpty && isTableEmpty) ||
                         (!isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty && !isTableEmpty)) {
                     // If none or all fields are filled, proceed to the new page
-                    TeacherCourses teacherCourses = new TeacherCourses(frame);
+                    TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
                     frame.getContentPane().removeAll();
                     frame.getContentPane().add(teacherCourses);
                     frame.revalidate();
@@ -89,7 +90,7 @@ public class TeacherPeriodView extends JPanel {
                     // If some fields are filled but not all of them, do not proceed
                     if (!isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty) {
                         // All three fields have values, proceed to new page
-                        TeacherCourses teacherCourses = new TeacherCourses(frame);
+                        TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
                         frame.getContentPane().removeAll();
                         frame.getContentPane().add(teacherCourses);
                         frame.revalidate();
@@ -97,7 +98,7 @@ public class TeacherPeriodView extends JPanel {
                         System.out.println("New page loaded.");
                     } else if (!isTableEmpty && !isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty) {
                         // If table has value and all fields are filled, proceed to new page
-                        TeacherCourses teacherCourses = new TeacherCourses(frame);
+                        TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
                         frame.getContentPane().removeAll();
                         frame.getContentPane().add(teacherCourses);
                         frame.revalidate();

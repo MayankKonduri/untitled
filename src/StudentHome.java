@@ -9,6 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -21,8 +22,9 @@ import java.util.Arrays;
 public class StudentHome extends JPanel {
     private JFrame frame;
     private DatabaseManager databaseManager;
-    private String userName = System.getProperty("user.name");
+    private String userName; //= System.getProperty("user.name");
     private Timer countdownTimer;
+    private Timer positionUpdateTimer;
     public String questionTableName;
     public String waitTimeOfClass;
     private int minutesUntilEndOfClass; // Variable to store minutes left
@@ -31,9 +33,10 @@ public class StudentHome extends JPanel {
     public int periodNumber;
 
 
-    public StudentHome(JFrame frame) throws SQLException {
+    public StudentHome(JFrame frame, String userName) throws SQLException {
         this.frame = frame;
-        this.databaseManager = new DatabaseManager();  // Initialize database manager
+        this.userName = userName;
+        this.databaseManager = new DatabaseManager(userName);  // Initialize database manager
 
         // Set layout manager for the panel
         this.setLayout(new BorderLayout());
@@ -53,7 +56,7 @@ public class StudentHome extends JPanel {
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
         } else {
                     // Database connection details
-                    String url = "jdbc:mysql://10.66.223.162/qclient1"; // Replace with your database URL
+                    String url = "jdbc:mysql://10.195.75.116/qclient1"; // Replace with your database URL
                     String user = "root"; // Replace with your DB username
                     String password = "password"; // Replace with your DB password
                     String tableName = userName + "_waitTime"; // Concatenate userName with "_waitTime"
@@ -167,7 +170,7 @@ public class StudentHome extends JPanel {
                                 JOptionPane.showMessageDialog(frame, msg + " is Over");
                                 StudentHome studentHome = null;
                                 try {
-                                    studentHome = new StudentHome(frame);
+                                    studentHome = new StudentHome(frame, userName);
                                 } catch (SQLException ex) {
                                     throw new RuntimeException(ex);
                                 }
@@ -237,7 +240,13 @@ public class StudentHome extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 //stopCountdown();  // Stop the countdown timer
-                HomePage homePage = new HomePage(frame);
+                HomePage homePage = null;
+                try {
+                    homePage = new HomePage(frame, userName);
+                } catch (IOException ex) {
+
+
+                }
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(homePage);
                 frame.revalidate();
@@ -421,6 +430,10 @@ public class StudentHome extends JPanel {
         // Revalidate and repaint the panel to ensure changes are reflected
         revalidate();
         repaint();
+
+
+
+        //keepPositionUpdated(questionTableName, userName, positionLabel);
 
 
 
@@ -741,6 +754,18 @@ public class StudentHome extends JPanel {
         });
 
     }
+
+    /*private void keepPositionUpdated(String questionTableName, String userName, JLabel positionLabel){
+        positionUpdateTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                positionLabel.setText("Position: " + databaseManager.getQuestionPosition(questionTableName, userName));
+            }
+        });
+
+        // Start the countdown timer
+        positionUpdateTimer.start();
+    }*/
 
 
     // Method to start the countdown and update the label
