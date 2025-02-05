@@ -207,7 +207,7 @@ public class HomePage extends JPanel {
                 frame.getContentPane().removeAll();
                     frame.revalidate();
                     frame.repaint();
-                    frame.setSize(400, 325);
+                    frame.setSize(400, 275);
                     frame.add(studentHome);
                     frame.setVisible(true);
             }
@@ -325,7 +325,8 @@ public class HomePage extends JPanel {
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableCreation3 + " (" +
                     "StudentID VARCHAR(100), " +
                     "QuestionSummary VARCHAR(300), " +
-                    "TimeStamp TIME" +  // Removed the trailing comma here
+                    "TimeStamp TIME, " +  // Corrected comma
+                    "IsQuestionActive BOOLEAN" +  // Corrected column definition and removed trailing comma
                     ")";
 
             // Execute the SQL query to create the table

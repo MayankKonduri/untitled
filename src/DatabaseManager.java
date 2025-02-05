@@ -21,6 +21,8 @@ import java.sql.Statement;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 import java.io.BufferedReader;
@@ -620,9 +622,62 @@ public class DatabaseManager {
         }
     }
 
+    public static void addRecordToTable(String tableName, String studentID, String questionSummary) {
+        // Ensure table name is safe from SQL injection by validating input
+        if (!tableName.matches("[a-zA-Z0-9_]+")) {
+            throw new IllegalArgumentException("Invalid table name.");
+        }
 
+        PreparedStatement preparedStatement = null;
+        Connection connection = null;
 
+        try {
+            // SQL query to insert data into the specified table
+            String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp) VALUES (?, ?, ?)";
 
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_USER = "root"; // Replace with your MySQL username
+            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
+            // Establish connection to the database
+            connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+
+            // Create a prepared statement to prevent SQL injection
+            preparedStatement = connection.prepareStatement(insertSQL);
+
+            // Set parameters for the PreparedStatement
+            preparedStatement.setString(1, studentID); // StudentID
+            preparedStatement.setString(2, questionSummary); // QuestionSummary
+
+            // Use java.sql.Timestamp to insert the current time correctly in SQL format
+            preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now())); // Current timestamp (Timestamp)
+            preparedStatement.setBoolean(4, true);
+            // Execute the insert statement
+            int rowsAffected = preparedStatement.executeUpdate();
+
+            // Check if the insertion was successful
+            if (rowsAffected > 0) {
+                System.out.println("Record successfully added to the table.");
+            } else {
+                System.out.println("Failed to add record to the table.");
+            }
+
+        } catch (SQLException e) {
+            // Handle SQL exception
+            e.printStackTrace();
+        } finally {
+            // Close resources to prevent memory leaks
+            try {
+                if (preparedStatement != null) {
+                    preparedStatement.close();
+                }
+                if (connection != null) {
+                    connection.close(); // Ensure the connection is also closed
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 }

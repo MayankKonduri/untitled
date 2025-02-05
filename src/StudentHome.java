@@ -1,10 +1,16 @@
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.SQLException;
 import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -297,11 +303,8 @@ public class StudentHome extends JPanel {
     }
     private void initializeStudentDashboard(String classInfo, String className) {
 
-        //System.out.println("Got " + minutesTillEndOfClass);
-
         // Format the class display string
         String formattedDisplayString = formatClassString(classInfo, className);
-        //System.out.println(formattedDisplayString);
 
         // Set the layout to null for absolute positioning
         setLayout(null);
@@ -317,7 +320,7 @@ public class StudentHome extends JPanel {
 
         // For a frame size of 400x325, calculate the x-position to center the label
         int xPosition = (400 - labelWidth) / 2;  // Center horizontally
-        int yPosition = 32;  // Position the class label 60px from the top (after the top bar)
+        int yPosition = 32;  // Position the class label 32px from the top (after the top bar)
 
         // Set the position and size of the label
         classLabel.setBounds(xPosition, yPosition, labelWidth, labelHeight);
@@ -329,8 +332,202 @@ public class StudentHome extends JPanel {
 
         //------------------------- Header --------------------------//
         //-------------------- Question Table -----------------------//
-        
+
+        ArrayList<String[]> results1 = null;
+        try {
+            results1 = databaseManager.checkNameInStudentsTables(userName);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+        if (results1.isEmpty()) {
+            System.out.println("No records found for the student.");
+        }
+
+        // Sample data for the table (you can replace this with your actual data)
+        String[][] rowData = {
+                {""}
+        };
+
+// Column headers for the table
+        String[] columnNames = {"Question Summary"};
+
+// Create the JTable with sample data and column names
+        JTable questionTable = new JTable(rowData, columnNames);
+
+        questionTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 14));  // Bolder font for header
+
+// Set the row height to a larger value
+        int rowHeight = 40; // Adjust this value as needed
+        questionTable.setRowHeight(rowHeight);  // Set the row height
+
+// Set the font of the table to Georgia
+        questionTable.setFont(new Font("Georgia", Font.PLAIN, 12));
+
+// Create a cell renderer to center the text in all columns
+        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+// Apply the center renderer to all columns
+        for (int i = 0; i < questionTable.getColumnCount(); i++) {
+            questionTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
+        }
+
+// Add the table to a JScrollPane for scrollability
+        JScrollPane tableScrollPane = new JScrollPane(questionTable);
+        tableScrollPane.setBounds(15, yPosition + labelHeight + 70, 360, 70);  // Position it below the class label
+
+// Set the preferred size of the table for proper display
+        questionTable.setPreferredScrollableViewportSize(new Dimension(300, 100));  // Adjust as needed
+
+// Add the scroll pane with the table to the panel
+        add(tableScrollPane);
+
+// If the table is empty, set the default value to "No Active Question"
+        if(questionTable.getValueAt(0,0).equals("")){
+            questionTable.setValueAt("No Active Question", 0, 0);
+        }
+
+// Add buttons below the table
+        JPanel buttonPanel = new JPanel();  // Create a new panel for buttons
+        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));  // Center the buttons horizontally
+        buttonPanel.setBounds(15, yPosition + labelHeight + 140, 360, 40);  // Set the position of the button panel
+
+// Create "Add Question" and "Remove Question" buttons
+        JButton addQuestionButton = new JButton("Add Question");
+        addQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
+        JButton removeQuestionButton = new JButton("Remove Question");
+        removeQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
+
+// Add action listeners for the buttons
+        addQuestionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Show a dialog asking for the Question Summary
+                String questionSummary = JOptionPane.showInputDialog(null, "Enter Question Summary:", "Add Question", JOptionPane.PLAIN_MESSAGE);
+
+                // Check if the input is not null or empty
+                if (questionSummary != null && !questionSummary.trim().isEmpty()) {
+                    // If the user provided a question summary
+                    questionTable.setValueAt(questionSummary, 0, 0); // Set the new question summary in the table
+                    System.out.println("Question Added: " + questionSummary);
+                    ArrayList<String[]> results = null;
+                    try {
+                        results = databaseManager.checkNameInStudentsTables(userName);
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    if (results.isEmpty()) {
+                        System.out.println("No records found for the student.");
+                    }
+                        for (int i = 0; i < results.size(); i++) {
+                            try {
+                                // Convert the strings in results[2] and results[3] to LocalTime
+                                LocalTime startTime = LocalTime.parse((String) results.get(i)[2]);  // Parse the start time string
+                                LocalTime endTime = LocalTime.parse((String) results.get(i)[3]);    // Parse the end time string
+
+                                // Check if the current time is within the range
+                                if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                                    String result = (String) results.get(i)[0]; // Get the value from the array (ensure it's a String)
+
+                                    // Check if the result matches the pattern "something_X_main" and modify it
+                                    if (result.matches(".*_\\d+_main")) {  // Regex to match something_X_main
+                                        result = result.replace("_main", "_questions"); // Replace "_main" with "_questions"
+                                    }
+
+                                    // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
+                                    DatabaseManager.addRecordToTable(result, userName, questionSummary);
+                                }
+                            } catch (DateTimeParseException e1) {
+                                // Handle the case where the string cannot be parsed into a LocalTime
+                                System.out.println("Invalid time format in results: " + e1.getMessage());
+                            }
+                        }
+
+                } else {
+                }
+            }
+        });
+
+        removeQuestionButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Check the value in the table
+                String currentQuestion = (String) questionTable.getValueAt(0, 0); // Assuming only one row in the table
+
+                if ("No Active Question".equals(currentQuestion)) {
+                    // Create a custom panel with a JLabel for the message
+                    JPanel panel = new JPanel();
+                    JLabel label = new JLabel("No Question to Remove.", JLabel.CENTER);
+                    label.setFont(new Font("Georgia", Font.BOLD, 14));  // Set font to Georgia
+                    panel.add(label);
+
+                    // Show the dialog with the custom panel
+                    JOptionPane.showMessageDialog(null, panel, "Error", JOptionPane.ERROR_MESSAGE);
+                } else {
+                    // Handle the Remove Question action if there is an active question
+                    System.out.println("Remove Question button clicked");
+
+                    // Remove the question from the table (set it back to "No Active Question")
+                    questionTable.setValueAt("No Active Question", 0, 0);
+
+                    // Optional: If you want to show a confirmation message
+                    JPanel panel = new JPanel();
+                    JLabel label = new JLabel("Question has been removed.", JLabel.CENTER);
+                    label.setFont(new Font("Georgia", Font.BOLD, 14));  // Set font to Georgia
+                    panel.add(label);
+
+                    // Show confirmation dialog
+                    JOptionPane.showMessageDialog(null, panel, "Success", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+
+// Add buttons to the button panel
+        buttonPanel.add(addQuestionButton);
+        buttonPanel.add(removeQuestionButton);
+
+// Add the button panel to the main panel
+        add(buttonPanel);
+
+// Revalidate and repaint the panel to ensure changes are reflected
+        revalidate();
+        repaint();
+
+// ListSelectionListener to highlight row selection
+        questionTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (!e.getValueIsAdjusting()) {
+                    int selectedRow = questionTable.getSelectedRow();
+                    if (selectedRow >= 0) {
+                        // Highlight the selected row
+                        // Set the selection background to the system's default selection color
+                        Color selectionBackground = UIManager.getColor("Table.selectionBackground");
+                        questionTable.setSelectionBackground(selectionBackground);
+                        questionTable.setSelectionBackground(selectionBackground); // Change the background color for selection
+                    } else {
+                        // Remove highlight if no row is selected
+                        questionTable.setSelectionBackground(Color.WHITE);  // Set to default when nothing is selected
+                    }
+                }
+            }
+        });
+
+// Add MouseListener to the parent panel to deselect the row if anywhere else is clicked
+        this.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                // Deselect the row when clicking anywhere else (not on the table)
+                if (questionTable.getSelectedRow() != -1) {
+                    questionTable.clearSelection();
+                    questionTable.setSelectionBackground(Color.WHITE);  // Set the background to white when deselected
+                }
+            }
+        });
+
     }
+
+
 
 
     public static String formatClassString(String classInfo, String className) {
@@ -383,5 +580,4 @@ public class StudentHome extends JPanel {
         // Return an array containing hours and minutes as integers
         return new int[]{Integer.parseInt(timeParts[0]), Integer.parseInt(timeParts[1])};
     }
-
 }
