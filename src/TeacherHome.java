@@ -158,13 +158,17 @@ public class TeacherHome extends JPanel {
                     dialog.add(waitTimeLabel, gbc);
 
                     gbc.gridx = 1;
-                    JSlider waitTimeSlider = new JSlider(0, 300, pWaitTime);
-                    waitTimeSlider.setMajorTickSpacing(50);
-                    waitTimeSlider.setMinorTickSpacing(10);
+                    JSlider waitTimeSlider = new JSlider(0, 600, pWaitTime);
+                    waitTimeSlider.setMajorTickSpacing(60);
+                    waitTimeSlider.setMinorTickSpacing(30);
                     waitTimeSlider.setPaintTicks(true);
                     waitTimeSlider.setPaintLabels(true);
                     waitTimeSlider.setFont(font); // Applies font to tick labels
                     dialog.add(waitTimeSlider, gbc);
+
+                    // Create a smaller font for the tick labels
+                    Font smallFont = new Font("Georgia", Font.PLAIN, 8); // Adjust size as needed
+                    waitTimeSlider.setFont(smallFont); // Applies font to the tick labels
 
                     // Label to display the current wait time
                     gbc.gridy = 4;
