@@ -164,8 +164,10 @@ public class HomePage extends JPanel {
                         for (int i = 1; i <= 7; i++) {
                             String tableCreation1 = name + "_" + i + "_Main";  // Dynamically create the table name
                             String tableCreation2 = name + "_" + i + "_Students";  // Dynamically create the table name
+                            String tableCreation3 = name + "_" + i + "_Questions"; //Dynamically create the table name
                             createTableMain(tableCreation1); // Call the method to create the table
                             createTableStudents(tableCreation2);
+                            createTableQuestions(tableCreation3);
                         }
 
                         TeacherHome teacherHome = new TeacherHome(frame);
@@ -284,6 +286,51 @@ public class HomePage extends JPanel {
             // Execute the SQL query to create the table
             statement.executeUpdate(createTableSQL);
             System.out.println("Table " + name + " created successfully.");
+
+        } catch (SQLException | ClassNotFoundException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            // Close resources
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+                if (connection != null) {
+                    connection.close();
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void createTableQuestions(String tableCreation3) {
+        Connection connection = null;
+        Statement statement = null;
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Connect to your database (replace with your own details)
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient", "root", "password");
+
+            // Ensure the database exists
+            statement = connection.createStatement();
+            String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient'";
+            ResultSet rs = statement.executeQuery(checkDatabaseSQL);
+
+            // Create SQL query to create the table
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableCreation3 + " (" +
+                    "StudentID VARCHAR(100), " +
+                    "QuestionSummary VARCHAR(300), " +
+                    "TimeStamp TIME" +  // Removed the trailing comma here
+                    ")";
+
+            // Execute the SQL query to create the table
+            statement.executeUpdate(createTableSQL);
+            System.out.println("Table " + tableCreation3 + " created successfully.");
 
         } catch (SQLException | ClassNotFoundException ex) {
             ex.printStackTrace();

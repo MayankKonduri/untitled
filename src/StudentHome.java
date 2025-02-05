@@ -90,7 +90,8 @@ public class StudentHome extends JPanel {
 
                     // Calculate minutes left until the end of class
                     minutesUntilEndOfClass = endTimeInMinutes - currentTimeInMinutes;
-                    initializeStudentDashboard(results.get(i)[0], results.get(i)[1], minutesUntilEndOfClass);
+                    initializeStudentDashboard(results.get(i)[0], results.get(i)[1]);
+                    initializeTimer(minutesUntilEndOfClass);
 
                     int finalI = i;
                     timer = new Timer(1000, new ActionListener() {
@@ -112,7 +113,7 @@ public class StudentHome extends JPanel {
                             // If the class is still in progress, update the display
                             if (minutesUntilEndOfClass > 0) {
                                 //System.out.println("Sending");
-                                initializeStudentDashboard(results.get(finalI)[0], results.get(finalI)[1], minutesUntilEndOfClass);
+                                initializeTimer(minutesUntilEndOfClass);
                             } else {
                                 // Stop the timer if class time is over
                                 timer.stop();
@@ -200,49 +201,53 @@ public class StudentHome extends JPanel {
         });
     }
 
+    private void initializeTimer(int minutesTillEndOfClass) {
+        //System.out.println(minutesTillEndOfClass);  // Debugging line to check if the value is being updated
+
+        // Use SwingUtilities.invokeLater to ensure UI updates happen on the Event Dispatch Thread (EDT)
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                // Create the top bar panel with a background color (this will change based on time)
+                if (topBar == null) {
+                    topBar = new JPanel();
+                    topBar.setLayout(new FlowLayout(FlowLayout.CENTER)); // Center the label in the bar
+                    topBar.setBounds(0, 0, 400, 25);  // Set size of the top bar (full width, 25px height)
+                    Border blackBorder = BorderFactory.createLineBorder(Color.BLACK, 2);  // Black border with 2px thickness
+                    topBar.setBorder(blackBorder);
+                    add(topBar);
+                }
+
+                // Set the background color of the top bar based on the minutes left
+                if (minutesTillEndOfClass > 15) {
+                    topBar.setBackground(Color.GREEN); // More than 15 minutes left
+                } else if (minutesTillEndOfClass > 5) {
+                    topBar.setBackground(Color.YELLOW); // Between 5 and 15 minutes left
+                } else {
+                    topBar.setBackground(Color.RED); // Less than 5 minutes left
+                }
+
+                // Create the "minutes left" label (text color will be black)
+                JLabel minutesLeftLabel = new JLabel("Minutes left: " + minutesTillEndOfClass);
+
+                // Set the font for the label
+                minutesLeftLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
+                minutesLeftLabel.setForeground(Color.BLACK);  // Set text color to black
+
+                // Remove previous label and add the new one
+                topBar.removeAll();  // Remove any previous label (important for updates)
+                topBar.add(minutesLeftLabel);  // Add the new label
+
+                // Revalidate and repaint to ensure the UI is updated
+                topBar.revalidate();
+                topBar.repaint();
+            }
+        });
+    }
+
+
     private void initializeStudentWaitingScreen(ArrayList<String> resultList) {
         resultList.add("");
-//        // Create a panel with BoxLayout (vertical alignment)
-//        JPanel panel = new JPanel();
-//        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // BoxLayout for vertical layout
-//
-//        // Clear the frame before adding new components
-//        frame.getContentPane().removeAll();  // Remove all components from the frame
-//
-//        // Check if resultList is empty
-//        if (resultList == null || resultList.isEmpty()) {
-//            JLabel noResultsLabel = new JLabel("No students in the waiting list.");
-//            noResultsLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-//            panel.add(noResultsLabel);
-//        } else {
-//            // Loop through the resultList and create a label for each element
-//            for (String item : resultList) {
-//                JLabel label = new JLabel(item);  // Create a new label
-//                label.setAlignmentX(Component.CENTER_ALIGNMENT);  // Center the label horizontally
-//                panel.add(label);  // Add the label to the panel
-//            }
-//        }
-//
-//        // Wrap the panel inside a scroll pane
-//        JScrollPane scrollPane = new JScrollPane(panel);
-//
-//        // Set the preferred size of the scroll pane or panel if necessary
-//        panel.setPreferredSize(new Dimension(400, 300));  // Adjust size if needed
-//
-//        // Add the scroll pane to the frame
-//        frame.add(scrollPane);  // Add the panel inside a scroll pane
-//
-//        // Refresh the frame
-//        frame.revalidate();  // Revalidate the frame to reflect the changes
-//        frame.repaint();     // Repaint the frame to update the display
-//
-//        // Make the frame visible
-//        SwingUtilities.invokeLater(new Runnable() {
-//            @Override
-//            public void run() {
-//                frame.setVisible(true); // Ensure frame is visible after all updates
-//            }
-//        });
         int yPosition = 65;  // Starting position for the first label
 
         // Loop through the resultList and create a label for each element
@@ -259,15 +264,10 @@ public class StudentHome extends JPanel {
             // Update the y-position for the next label (add spacing between labels)
             yPosition += 25;  // Adjust the value to change the vertical spacing between labels
         }
-
         // Refresh the frame
         frame.revalidate();  // Revalidate the frame to reflect the changes
         frame.repaint();     // Repaint the frame to update the display
-
-
     }
-
-
 
     // Function to calculate minutes to class start
     public static int calculateMinutesToClassStart(int currentHour, int currentMinute, int startHour, int startMinute, int endHour, int endMinute) {
@@ -295,9 +295,7 @@ public class StudentHome extends JPanel {
             return 1000000; //currently going on
         }
     }
-
-
-    private void initializeStudentDashboard(String classInfo, String className, int minutesTillEndOfClass) {
+    private void initializeStudentDashboard(String classInfo, String className) {
 
         //System.out.println("Got " + minutesTillEndOfClass);
 
@@ -307,36 +305,6 @@ public class StudentHome extends JPanel {
 
         // Set the layout to null for absolute positioning
         setLayout(null);
-
-        // Create the top bar panel with a background color (this will change based on time)
-        if (topBar == null) {
-            topBar = new JPanel();
-            topBar.setLayout(new FlowLayout(FlowLayout.CENTER)); // Center the label in the bar
-            topBar.setBounds(0, 0, 400, 25);  // Set size of the top bar (full width, 25px height)
-            Border blackBorder = BorderFactory.createLineBorder(Color.BLACK, 2);  // Black border with 2px thickness
-            topBar.setBorder(blackBorder);
-            add(topBar);
-        }
-
-        // Set the background color of the top bar based on the minutes left
-        if (minutesTillEndOfClass > 15) {
-            topBar.setBackground(Color.GREEN); // More than 15 minutes left
-        } else if (minutesTillEndOfClass > 5) {
-            topBar.setBackground(Color.YELLOW); // Between 5 and 15 minutes left
-        } else {
-            topBar.setBackground(Color.RED); // Less than 5 minutes left
-        }
-
-        // Create the "minutes left" label (text color will be black)
-        JLabel minutesLeftLabel = new JLabel("Minutes left: " + minutesTillEndOfClass);
-
-        // Set the font for the label
-        minutesLeftLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
-        minutesLeftLabel.setForeground(Color.BLACK);  // Set text color to black
-
-        // Add the label to the top bar panel
-        topBar.removeAll(); // Remove any previous label (important for updates)
-        topBar.add(minutesLeftLabel);
 
         // Create the label with the formatted class display string
         JLabel classLabel = new JLabel(formattedDisplayString);
@@ -358,6 +326,10 @@ public class StudentHome extends JPanel {
         // Revalidate and repaint the panel to ensure changes are reflected
         revalidate();
         repaint();
+
+        //------------------------- Header --------------------------//
+        //-------------------- Question Table -----------------------//
+        
     }
 
 
