@@ -806,56 +806,76 @@ public class DatabaseManager {
             return false;
         }
 
-        // Method to insert or update the wait time in a specific table and column
-        public void insertOrUpdateWaitTime(String tableString, String columnName, int remainingTime) {
+    public void insertOrUpdateWaitTime(String tableString, String columnName, int remainingTime) {
 
-            tableString = tableString.toLowerCase(); // Ensure table name is lowercase
-            System.out.println("Called: " + tableString + " " + columnName + " " + remainingTime);
+        tableString = tableString.toLowerCase(); // Ensure table name is lowercase
+        //System.out.println("Called: " + tableString + " " + columnName + " " + remainingTime);
 
-            // Check if the table exists
-            if (!doesTableExist(tableString)) {
-                System.out.println("Table not found: " + tableString);
-                return; // Exit the method if the table doesn't exist
-            } else {
-                System.out.println("Table found: " + tableString);
+        // Check if the table exists
+        if (!doesTableExist(tableString)) {
+            //System.out.println("Table not found: " + tableString);
+            return; // Exit the method if the table doesn't exist
+        } else {
+            //System.out.println("Table found: " + tableString);
+        }
+
+        // Check if the column exists
+        if (!doesColumnExist(tableString, columnName)) {
+            //System.out.println("Column not found: " + columnName);
+            return; // Exit the method if the column doesn't exist
+        } else {
+            //System.out.println("Column found: " + columnName);
+        }
+
+        // SQL query to delete all rows in the table
+        String deleteQuery = "DELETE FROM " + tableString;
+
+        // Debugging: print the SQL query to check for correctness
+        //System.out.println("Executing query: " + deleteQuery);
+
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+            // Prepare the statement to delete all rows
+            try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
+                // Execute the delete
+                int rowsDeleted = deleteStatement.executeUpdate();
+
+                // Debugging: check if the delete was successful
+                if (rowsDeleted > 0) {
+                    //System.out.println("All rows deleted from table: " + tableString);
+                } else {
+                    //System.out.println("No rows to delete. Table might already be empty.");
+                }
             }
 
-            // Check if the column exists
-            if (!doesColumnExist(tableString, columnName)) {
-                System.out.println("Column not found: " + columnName);
-                return; // Exit the method if the column doesn't exist
-            } else {
-                System.out.println("Column found: " + columnName);
-            }
-
-            // SQL query to insert or update the wait time
-            String updateQuery = "UPDATE " + tableString + " SET " + columnName + " = IFNULL(" + columnName + ", ?)";
+            // SQL query to insert the wait time
+            String insertQuery = "INSERT INTO " + tableString + " (" + columnName + ") VALUES (?)";
 
             // Debugging: print the SQL query to check for correctness
-            System.out.println("Executing query: " + updateQuery);
+            //System.out.println("Executing query: " + insertQuery);
 
-            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
-                // Prepare the statement to insert or update the wait time
-                try (PreparedStatement statement = connection.prepareStatement(updateQuery)) {
-                    // Set the value of remainingTime in the prepared statement
-                    statement.setInt(1, remainingTime);
+            // Prepare the statement to insert the wait time
+            try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
+                // Set the value of remainingTime in the prepared statement
+                insertStatement.setInt(1, remainingTime);
 
-                    // Execute the update
-                    int rowsUpdated = statement.executeUpdate();
+                // Execute the insert
+                int rowsInserted = insertStatement.executeUpdate();
 
-                    // Debugging: check if the update was successful
-                    if (rowsUpdated > 0) {
-                        System.out.println("Wait time inserted/updated successfully in table: " + tableString + ", column: " + columnName);
-                    } else {
-                        System.out.println("No rows updated. Check if the table exists or if the column is correct.");
-                    }
+                // Debugging: check if the insert was successful
+                if (rowsInserted > 0) {
+                    //System.out.println("Wait time inserted successfully in table: " + tableString + ", column: " + columnName);
+                } else {
+                    //System.out.println("No rows inserted. Check if the table exists or if the column is correct.");
                 }
-            } catch (SQLException e) {
-                // Print stack trace for debugging
-                System.err.println("SQL Exception: " + e.getMessage());
-                e.printStackTrace();
             }
+
+        } catch (SQLException e) {
+            // Print stack trace for debugging
+            System.err.println("SQL Exception: " + e.getMessage());
+            e.printStackTrace();
         }
+    }
+
 
 
     public int getWaitTimeFromStudent(String tableString, String columnName) {
@@ -874,7 +894,7 @@ public class DatabaseManager {
                         // Retrieve the value from the column (assuming it's an integer)
                         result = resultSet.getInt(columnName); // Get the value from the specific column
                     } else {
-                        System.out.println("No data found in table: " + tableString + ", column: " + columnName);
+                        //System.out.println("No data found in table: " + tableString + ", column: " + columnName);
                     }
                 }
             }
@@ -886,6 +906,34 @@ public class DatabaseManager {
         return result;
     }
 
+        public static int getQuestionPosition(String tableName, String studentID) {
+            int position = -1;
+            String query = "SELECT StudentID, QuestionSummary, TimeStamp, IsQuestionActive " +
+                    "FROM " + tableName + " " +
+                    "WHERE IsQuestionActive = 1 " +
+                    "ORDER BY TimeStamp";
 
+            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+                 Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(query)) {
+
+                int rowNumber = 0;
+
+                // Iterate over the result set and find the position of the given studentID
+                while (rs.next()) {
+                    String currentStudentID = rs.getString("StudentID");
+                    if (currentStudentID.equals(studentID)) {
+                        rowNumber++;
+                        position = rowNumber;
+                        break; // Exit after finding the first match
+                    }
+                    rowNumber++;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            return position;
+        }
 
 }

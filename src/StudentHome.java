@@ -22,7 +22,7 @@ public class StudentHome extends JPanel {
     private JFrame frame;
     private DatabaseManager databaseManager;
     private String userName = System.getProperty("user.name");
-
+    private Timer countdownTimer;
     public String questionTableName;
     public String waitTimeOfClass;
     private int minutesUntilEndOfClass; // Variable to store minutes left
@@ -236,6 +236,7 @@ public class StudentHome extends JPanel {
         homeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                //stopCountdown();  // Stop the countdown timer
                 HomePage homePage = new HomePage(frame);
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(homePage);
@@ -391,6 +392,32 @@ public class StudentHome extends JPanel {
         // Add the panel to the frame
         add(waitTimePanel);
 
+        // Create the panel for the light blue bar (background)
+        JPanel positionPanel = new JPanel();
+        positionPanel.setLayout(new BorderLayout());
+
+// Create a label for the Position text
+        JLabel positionLabel = new JLabel("Position: ", SwingConstants.CENTER);
+        positionLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
+        positionLabel.setForeground(Color.BLACK);  // Set text color
+        positionPanel.setBorder(new LineBorder(Color.BLACK, 2)); // Black border with thickness of 2
+// Add the positionLabel to the panel
+        positionPanel.add(positionLabel, BorderLayout.CENTER);
+
+// Set the same width as the waitTimePanel
+        int positionLabelWidth = waitTimePanel.getWidth();
+        int positionLabelHeight = positionLabel.getPreferredSize().height;
+
+// Calculate the position to place the Position panel to the right of the waitTimePanel
+        int positionXPosition = waitTimePanel.getX() + waitTimePanel.getWidth() + 4; // 10px gap to the right
+        int positionYPosition = waitTimePanel.getY();  // Align vertically with waitTimePanel
+
+// Set the panel size and position
+        positionPanel.setBounds(positionXPosition, positionYPosition, positionLabelWidth - 6, positionLabelHeight + 10);
+
+// Add the panel to the frame
+        add(positionPanel);
+
         // Revalidate and repaint the panel to ensure changes are reflected
         revalidate();
         repaint();
@@ -468,6 +495,8 @@ public class StudentHome extends JPanel {
                 System.out.println("Invalid time format in results: " + e1.getMessage());
             }
         }
+        int position = databaseManager.getQuestionPosition(questionTableName, userName);
+        positionLabel.setText("Position: " + position);
         waitTimeLabel.setText("Wait Time: " + 0 + " seconds");
         waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
         System.out.println("Test: " + waitTimeOfClass);
@@ -476,20 +505,37 @@ public class StudentHome extends JPanel {
                 {""}
         };
         if(input.equals("")){
+            positionLabel.setText("Position: N/A");
+            waitTimeLabel.setText("Wait Time: ## seconds");
             // Sample data for the table (you can replace this with your actual data)
             rowData[0][0] = "";
             addQuestionButton.setVisible(true);
             removeQuestionButton.setVisible(false);
+            String tableString = userName + "_" + "waittime";
+            String columnName = "WaitTime_" + periodNumber;
+            int loadWaitTime = databaseManager.getWaitTimeFromStudent(tableString,columnName);
+            System.out.println("Wait Time Received: " + loadWaitTime);
+            if(!(loadWaitTime==0)) {
+                addQuestionButton.setEnabled(false);
+                if(loadWaitTime<=10){
+                    waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
+                }
+                else{
+                    waitTimePanel.setBackground(new Color(255, 182, 193)); // Light red (pinkish) color
+                }
+                startCountdown(waitTimeLabel, loadWaitTime, waitTimePanel, addQuestionButton);
+            }
+            else{
+                addQuestionButton.setEnabled(true);
+                waitTimeLabel.setText("Wait Time: 0 seconds");
+                waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
+            }
         }
         else{
             rowData[0][0] = input;
             addQuestionButton.setVisible(false);
             removeQuestionButton.setVisible(true);
-
-            String tableString = userName + "_" + "waittime";
-            String columnName = "WaitTime_" + periodNumber;
-            int loadWaitTime = databaseManager.getWaitTimeFromStudent(tableString,columnName);
-            startCountdown(waitTimeLabel, loadWaitTime, waitTimePanel, addQuestionButton);
+            positionLabel.setText("Position: " + databaseManager.getQuestionPosition(questionTableName, userName));
         }
 
 
@@ -570,6 +616,7 @@ public class StudentHome extends JPanel {
 
                                     // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
                                     DatabaseManager.addRecordToTable(result, userName, questionSummary);
+                                    positionLabel.setText("Position: " + databaseManager.getQuestionPosition(questionTableName, userName));
                                 }
                             } catch (DateTimeParseException e1) {
                                 // Handle the case where the string cannot be parsed into a LocalTime
@@ -626,6 +673,7 @@ public class StudentHome extends JPanel {
 
                             // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
                             DatabaseManager.deactivateQuestion(result, userName, currentQuestion);
+                            positionLabel.setText("Position: N/A");
                         }
                     } catch (DateTimeParseException e1) {
                         // Handle the case where the string cannot be parsed into a LocalTime
@@ -696,17 +744,19 @@ public class StudentHome extends JPanel {
 
 
     // Method to start the countdown and update the label
+    // Start Countdown method
     private void startCountdown(JLabel waitTimeLabel, int startTimeInSeconds, JPanel waitTimePanel, JButton addQuestionButton) {
-        // Create a Timer to update the label every second
-        Timer timer = new Timer(1000, new ActionListener() {
+        // Create and store the Timer so it can be stopped later
+        countdownTimer = new Timer(1000, new ActionListener() {
             private int remainingTime = startTimeInSeconds;
 
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (remainingTime >= 0) {
-                    if(remainingTime>10){
+                    if (remainingTime > 10) {
                         waitTimePanel.setBackground(new Color(255, 182, 193)); // Light red (pinkish) color
                     }
+
                     // Update the label with the current remaining time
                     waitTimeLabel.setText("Wait Time: " + remainingTime + " seconds");
 
@@ -728,13 +778,20 @@ public class StudentHome extends JPanel {
                     databaseManager.insertOrUpdateWaitTime(tableString, columnName, 0);
                     // Optional: Reset the text color back to black after countdown ends
                     waitTimeLabel.setForeground(Color.BLACK);
-                    addQuestionButton.setEnabled(true);
+                    addQuestionButton.setEnabled(true);  // Enable the add question button when timer ends
                 }
             }
         });
 
         // Start the countdown timer
-        timer.start();
+        countdownTimer.start();
+    }
+
+    // Method to stop the countdown timer (e.g., triggered by the Home button)
+    private void stopCountdown() {
+        if (countdownTimer != null && countdownTimer.isRunning()) {
+            countdownTimer.stop();  // Stop the countdown timer
+        }
     }
 
 
