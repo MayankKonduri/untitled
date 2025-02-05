@@ -14,7 +14,7 @@ import java.util.List;
 
 public class DatabaseManager {
     // JDBC URL, username, and password for the local database
-    private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient";
+    private static final String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1";
     private static final String DATABASE_USER = "root"; // Replace with your MySQL username
     private static final String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -612,7 +612,7 @@ public class DatabaseManager {
             // SQL query to insert data into the specified table
             String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive) VALUES (?, ?, ?, ?)";
 
-            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -669,7 +669,7 @@ public class DatabaseManager {
             // SQL query to retrieve the QuestionSummary for the given studentID and where IsQuestionActive is 1
             String selectSQL = "SELECT QuestionSummary FROM " + questionTableName + " WHERE StudentID = ? AND IsQuestionActive = 1";
 
-            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -727,7 +727,7 @@ public class DatabaseManager {
             // SQL query to update IsQuestionActive to false (0) for the specified studentID and questionSummary
             String updateSQL = "UPDATE " + tableName + " SET IsQuestionActive = ? WHERE StudentID = ? AND QuestionSummary = ?";
 
-            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.223.162/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -856,16 +856,6 @@ public class DatabaseManager {
                 e.printStackTrace();
             }
         }
-
-
-
-
-
-
-
-
-
-
 
 
     public int getWaitTimeFromStudent(String tableString, String columnName) {
