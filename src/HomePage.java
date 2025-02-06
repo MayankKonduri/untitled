@@ -211,7 +211,7 @@ public class HomePage extends JPanel {
                 frame.getContentPane().removeAll();
                     frame.revalidate();
                     frame.repaint();
-                    frame.setSize(400, 275);
+                    frame.setSize(400, 300);
                     frame.add(studentHome);
                     frame.setVisible(true);
             }

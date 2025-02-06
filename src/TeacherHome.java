@@ -67,6 +67,18 @@ public class TeacherHome extends JPanel {
             questionViewerButton.setFont(new Font("Georgia", Font.BOLD, 16));
             questionViewerButton.setBounds(50, 70, 300, 40);
             add(questionViewerButton);
+            questionViewerButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    QuestionViewer questionViewer = null;
+                    questionViewer = new QuestionViewer(frame, userName);
+                    frame.getContentPane().removeAll();
+                    frame.getContentPane().add(questionViewer);
+                    frame.revalidate();
+                    frame.repaint();
+                    frame.setSize(400, 400);  // Resize the frame to fit the home page
+                }
+            });
 
             // Courses Button
             JButton coursesButton = new JButton("Courses");

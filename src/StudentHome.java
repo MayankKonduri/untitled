@@ -360,7 +360,7 @@ public class StudentHome extends JPanel {
 
         // Create the label with the formatted class display string
         JLabel classLabel = new JLabel(formattedDisplayString);
-        classLabel.setFont(new Font("Georgia", Font.PLAIN, 14));
+        classLabel.setFont(new Font("Georgia", Font.PLAIN, 16));
         classLabel.setForeground(Color.BLACK);  // Set text color for the class name
 
         // Calculate the position for top-center alignment
@@ -369,7 +369,7 @@ public class StudentHome extends JPanel {
 
         // For a frame size of 400x325, calculate the x-position to center the label
         int xPosition = (400 - labelWidth) / 2;  // Center horizontally
-        int yPosition = 32;  // Position the class label 32px from the top (after the top bar)
+        int yPosition = 50;  // Position the class label 32px from the top (after the top bar)
 
         // Set the position and size of the label
         classLabel.setBounds(xPosition, yPosition, labelWidth, labelHeight);
@@ -396,7 +396,7 @@ public class StudentHome extends JPanel {
         int waitTimeXPosition = (400 - waitTimeLabelWidth) / 2;  // Center horizontally
         int waitTimeYPosition = yPosition + labelHeight + 10;  // 10px gap below class label
 
-        waitTimePanel.setBounds(waitTimeXPosition-123, waitTimeYPosition + 30, waitTimeLabelWidth + 58, waitTimeLabelHeight+10);
+        waitTimePanel.setBounds(waitTimeXPosition-123, waitTimeYPosition + 20, waitTimeLabelWidth + 58, waitTimeLabelHeight+20);
 
         // Add the panel to the frame
         add(waitTimePanel);
@@ -422,7 +422,7 @@ public class StudentHome extends JPanel {
         int positionYPosition = waitTimePanel.getY();  // Align vertically with waitTimePanel
 
 // Set the panel size and position
-        positionPanel.setBounds(positionXPosition, positionYPosition, positionLabelWidth - 6, positionLabelHeight + 10);
+        positionPanel.setBounds(positionXPosition, positionYPosition, positionLabelWidth - 6, positionLabelHeight + 20);
 
 // Add the panel to the frame
         add(positionPanel);

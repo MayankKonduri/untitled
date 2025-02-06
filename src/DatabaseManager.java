@@ -580,6 +580,7 @@ public class DatabaseManager {
             for (int grade = 1; grade <= 7; grade++) {
                 String mainTable = baseName + "_" + grade + "_main";
                 String studentsTable = baseName + "_" + grade + "_students";
+                String questionsTable = baseName + "_" + grade + "_questions";
 
                 try (Statement tableDeletionStmt = connection.createStatement()) {
                     // Drop the main table
@@ -591,8 +592,13 @@ public class DatabaseManager {
                     String dropStudentsTableQuery = "DROP TABLE IF EXISTS " + studentsTable;
                     tableDeletionStmt.executeUpdate(dropStudentsTableQuery);
                     System.out.println("Deleted table: " + studentsTable);
+
+                    // Drop the students table
+                    String dropQuestionsTableQuery = "DROP TABLE IF EXISTS " + questionsTable;
+                    tableDeletionStmt.executeUpdate(dropQuestionsTableQuery);
+                    System.out.println("Deleted table: " + questionsTable);
                 } catch (SQLException e) {
-                    System.err.println("Error deleting table: " + mainTable + " or " + studentsTable);
+                    System.err.println("Error deleting table: " + mainTable + " or " + studentsTable + " or " + questionsTable);
                     e.printStackTrace();
                 }
             }
