@@ -967,17 +967,17 @@ public class DatabaseManager {
     }
 
     public void clearQuestionsList(String tableName1) {
-        String sql = "UPDATE " + tableName1 + " SET isQuestionActive = 0";
+        String sql = "UPDATE " + tableName1 + " SET isQuestionActive = 0, response = 'Teacher Manually Removed Question' WHERE isQuestionActive = 1";
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
             int affectedRows = pstmt.executeUpdate();
-            System.out.println("Cleared questions. Rows affected: " + affectedRows);
+            System.out.println("Cleared questions and updated responses. Rows affected: " + affectedRows);
 
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println("Failed to clear questions in table: " + tableName1);
+            System.out.println("Failed to clear questions and update responses in table: " + tableName1);
         }
     }
 
