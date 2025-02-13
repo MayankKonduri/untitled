@@ -151,12 +151,12 @@ public class QuestionViewer extends JPanel {
                         System.out.println("Period number not found.");
                     }
                     String tableName = teacherName + "_" + periodNumber + "_questions";
-                    databaseManager.removeActiveQuestion(studentID, tableName);
                     // After the removal, update the UI or do other tasks
                     removeQuestionButton.setVisible(false);
                     clearQuestionListButton.setVisible(true);
                     questionTable.clearSelection();
-
+                    String tableName4 = teacherName + "_" + periodNumber + "_questions";
+                    databaseManager.updateQuestionsTable(studentID, tableName4, "Teacher Manually Removed Question");
                     loadTeacherAndClasses();
                 }
             }
@@ -183,7 +183,7 @@ public class QuestionViewer extends JPanel {
                 }
                 String tableName1 = teacherName + "_" + periodNumber + "_questions";
                 databaseManager.clearQuestionsList(tableName1);
-
+                String tableName4 = teacherName + "_" + periodNumber + "_questions";
                 loadTeacherAndClasses();
             }
 
@@ -375,7 +375,7 @@ public class QuestionViewer extends JPanel {
     }
 
     private void loadTeacherAndClasses() {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password")) {
             PreparedStatement stmt = conn.prepareStatement("SELECT teacher_name FROM teacher WHERE teacher_id = ?");
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();
@@ -430,7 +430,7 @@ public class QuestionViewer extends JPanel {
 
     private void loadQuestionsForCurrentPeriod(Connection existingConn) {
         try (Connection conn = existingConn != null ? existingConn :
-                DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password")) {
+                DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password")) {
 
             String period = classPeriods[currentIndex].split(" ")[0];
             PreparedStatement stmt = conn.prepareStatement("SELECT StudentID, QuestionSummary FROM " +

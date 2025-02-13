@@ -227,7 +227,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -272,7 +272,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -318,7 +318,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
