@@ -14,7 +14,7 @@ import java.util.List;
 
 public class DatabaseManager {
     // JDBC URL, username, and password for the local database
-    private static final String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1";
+    private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1";
     private static final String DATABASE_USER = "root"; // Replace with your MySQL username
     private static final String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
     private String userName;
@@ -622,7 +622,7 @@ public class DatabaseManager {
             // SQL query to insert data into the specified table
             String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive) VALUES (?, ?, ?, ?)";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -679,7 +679,7 @@ public class DatabaseManager {
             // SQL query to retrieve the QuestionSummary for the given studentID and where IsQuestionActive is 1
             String selectSQL = "SELECT QuestionSummary FROM " + questionTableName + " WHERE StudentID = ? AND IsQuestionActive = 1";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -737,7 +737,7 @@ public class DatabaseManager {
             // SQL query to update IsQuestionActive to false (0) for the specified studentID and questionSummary
             String updateSQL = "UPDATE " + tableName + " SET IsQuestionActive = ? WHERE StudentID = ? AND QuestionSummary = ?";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -946,4 +946,83 @@ public class DatabaseManager {
             return position;
         }
 
+    public void removeActiveQuestion(String studentID, String tableName) {
+        String query = "UPDATE " + tableName + " SET isQuestionActive = 0 WHERE studentID = ? AND isQuestionActive = 1";
+
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD); // Assuming you have a method to get DB connection
+             PreparedStatement pstmt = connection.prepareStatement(query)) {
+
+            pstmt.setString(1, studentID);
+
+            int rowsUpdated = pstmt.executeUpdate();
+            if (rowsUpdated > 0) {
+                System.out.println("Successfully deactivated the active question for student ID: " + studentID);
+            } else {
+                System.out.println("No active question found for student ID: " + studentID);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clearQuestionsList(String tableName1) {
+        String sql = "UPDATE " + tableName1 + " SET isQuestionActive = 0";
+
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            int affectedRows = pstmt.executeUpdate();
+            System.out.println("Cleared questions. Rows affected: " + affectedRows);
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Failed to clear questions in table: " + tableName1);
+        }
+    }
+
+    public String getStudentName(String studentID, String tableName) {
+        String studentName = null;
+        String query = "SELECT nickname FROM " + tableName + " WHERE studentID = ?";
+
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, studentID);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                studentName = rs.getString("nickname");
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return studentName;
+    }
+
+    public void updateQuestionsTable(String studentID, String tableName3, String s) {
+        String query = "UPDATE " + tableName3 + " SET Response = ?, isQuestionActive = 0 WHERE studentID = ? AND isQuestionActive = 1";
+
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            // Set the parameters for the query
+            pstmt.setString(1, s); // Set the Response value
+            pstmt.setString(2, studentID); // Set the studentID for the row to be updated
+
+            // Execute the update query
+            int rowsUpdated = pstmt.executeUpdate();
+
+            if (rowsUpdated > 0) {
+                System.out.println("Successfully updated the question for student ID: " + studentID);
+            } else {
+                System.out.println("No active question found for student ID: " + studentID);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }

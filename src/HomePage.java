@@ -227,7 +227,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -272,7 +272,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -318,7 +318,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -328,9 +328,10 @@ public class HomePage extends JPanel {
             // Create SQL query to create the table
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableCreation3 + " (" +
                     "StudentID VARCHAR(100), " +
-                    "QuestionSummary VARCHAR(300), " +
+                    "QuestionSummary VARCHAR(500), " +
                     "TimeStamp TIME, " +  // Corrected comma
-                    "IsQuestionActive BOOLEAN" +  // Corrected column definition and removed trailing comma
+                    "IsQuestionActive BOOLEAN, " +  // Corrected column definition and removed trailing comma
+                    "Response VARCHAR(500)" +
                     ")";
 
             // Execute the SQL query to create the table
