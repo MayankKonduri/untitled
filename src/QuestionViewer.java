@@ -25,11 +25,15 @@ public class QuestionViewer extends JPanel {
     private JButton removeQuestionButton = new JButton();
     private JButton clearQuestionListButton = new JButton();
     private DatabaseManager databaseManager = new DatabaseManager(userName);
+    private Thread refreshThread;
+    private volatile boolean running = true;
 
     public QuestionViewer(JFrame frame, String userName) {
         this.frame = frame;
         this.userName = userName;
         this.classPeriods = new String[7];
+        this.databaseManager = new DatabaseManager(userName);
+
 
         setLayout(null);
 
@@ -48,14 +52,16 @@ public class QuestionViewer extends JPanel {
         homeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                stopAutoRefreshThread();
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(new TeacherHome(frame, userName));
-                frame.setSize(400, 325);
                 frame.revalidate();
                 frame.repaint();
+                frame.setSize(400,325);
             }
         });
         add(homeButton);
+
 
         // Custom Panel for Title + Navigation
         JPanel titleBarPanel = new JPanel() {
@@ -356,8 +362,9 @@ public class QuestionViewer extends JPanel {
 
         // Load Data
         loadTeacherAndClasses();
+        startAutoRefreshThread();
 
-        // CLICK ANYWHERE ELSE TO UNSELECT ROW
+
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -374,8 +381,29 @@ public class QuestionViewer extends JPanel {
         });
     }
 
+    private void startAutoRefreshThread() {
+        refreshThread = new Thread(() -> {
+            while (running) {
+                try {
+                    loadTeacherAndClasses();
+                    Thread.sleep(3000); // Adjust interval
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+        refreshThread.start();
+    }
+
+    private void stopAutoRefreshThread() {
+        running = false; // Stop the loop
+        if (refreshThread != null) {
+            refreshThread.interrupt(); // Interrupt the sleep if needed
+        }
+    }
+
     private void loadTeacherAndClasses() {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password")) {
             PreparedStatement stmt = conn.prepareStatement("SELECT teacher_name FROM teacher WHERE teacher_id = ?");
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();
@@ -430,7 +458,7 @@ public class QuestionViewer extends JPanel {
 
     private void loadQuestionsForCurrentPeriod(Connection existingConn) {
         try (Connection conn = existingConn != null ? existingConn :
-                DriverManager.getConnection("jdbc:mysql:// 10.66.201.75/qclient1", "root", "password")) {
+                DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password")) {
 
             String period = classPeriods[currentIndex].split(" ")[0];
             PreparedStatement stmt = conn.prepareStatement("SELECT StudentID, QuestionSummary FROM " +
