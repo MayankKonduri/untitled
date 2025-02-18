@@ -31,7 +31,31 @@ public class StudentHome extends JPanel {
     private Timer timer; // Timer for updating every 60 seconds
     private JPanel topBar;  // Declare a topBar reference at the class level
     public int periodNumber;
-
+    JLabel positionLabel;
+    JLabel classLabel;
+    int labelWidth;
+    int labelHeight;
+    int xPosition;
+    int yPosition;
+    JPanel waitTimePanel = new JPanel();
+    JLabel waitTimeLabel;
+    int waitTimeLabelWidth;
+    int waitTimeLabelHeight;
+    int waitTimeXPosition;
+    int waitTimeYPosition;
+    JPanel positionPanel = new JPanel();
+    int positionLabelWidth;
+    int positionLabelHeight;
+    int positionXPosition;
+    int positionYPosition;
+    JPanel buttonPanel = new JPanel();  // Create a new panel for buttons
+    JButton addQuestionButton = new JButton("Add Question");
+    JButton removeQuestionButton = new JButton("Remove Question");
+    String[] columnNames;
+    String[][] rowData;
+    JTable questionTable;
+    private Thread refreshThread;
+    private volatile boolean running = true;
 
     public StudentHome(JFrame frame, String userName) throws SQLException {
         this.frame = frame;
@@ -84,7 +108,171 @@ public class StudentHome extends JPanel {
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
+            ArrayList<String[]> results = databaseManager.checkNameInStudentsTables(userName);
+// Get the current time
+            LocalTime currentTime = LocalTime.now();
 
+            // Extract hours and minutes
+            int hour = currentTime.getHour();
+            int minute = currentTime.getMinute();
+
+            int temporary = 0;
+            String bigToPrint = "";
+
+            for(int i=0;i<results.size();i++){
+                String timePreStart = (results.get(i))[2];
+                String timePreEnd = (results.get(i))[3];
+                int[] timePostStart = splitTime(timePreStart);
+                int[] timePostEnd = splitTime(timePreEnd);
+
+                int startHour = timePostStart[0];
+                int startMinute = timePostStart[1];
+                int endHour = timePostEnd[0];
+                int endMinute = timePostEnd[1];
+
+                boolean isInClassTime = (hour > startHour) || (hour == startHour && minute >= startMinute);
+                boolean isBeforeEndTime = (hour < endHour) || (hour == endHour && minute < endMinute);
+
+                if (isInClassTime && isBeforeEndTime) {
+                    // Format the class display string
+                    String formattedDisplayString = formatClassString(results.get(i)[0], results.get(i)[1]);
+
+                    // Set the layout to null for absolute positioning
+                    setLayout(null);
+
+                    // Create the label with the formatted class display string
+                    classLabel = new JLabel(formattedDisplayString);
+                    classLabel.setFont(new Font("Georgia", Font.PLAIN, 16));
+                    classLabel.setForeground(Color.BLACK);  // Set text color for the class name
+
+                    // Calculate the position for top-center alignment
+                    labelWidth = classLabel.getPreferredSize().width;
+                    labelHeight = classLabel.getPreferredSize().height;
+
+                    // For a frame size of 400x325, calculate the x-position to center the label
+                    xPosition = (400 - labelWidth) / 2;  // Center horizontally
+                    yPosition = 50;  // Position the class label 32px from the top (after the top bar)
+
+                    // Set the position and size of the label
+                    classLabel.setBounds(xPosition, yPosition, labelWidth, labelHeight);
+                    add(classLabel);
+
+                    // Create the panel for the light blue bar (background)
+                    waitTimePanel.setBackground(new Color(255, 182, 193)); // Light red (pinkish) color
+                    waitTimePanel.setLayout(new BorderLayout());
+
+                    // Create a label for the Wait Time text
+                    waitTimeLabel = new JLabel("Wait Time: 0 seconds", SwingConstants.CENTER);
+                    waitTimeLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
+                    waitTimeLabel.setForeground(Color.BLACK);  // Set text color
+                    waitTimePanel.setBorder(new LineBorder(Color.BLACK, 2)); // Black border with thickness of 2
+                    // Add the waitTimeLabel to the panel
+                    waitTimePanel.add(waitTimeLabel, BorderLayout.CENTER);
+
+                    // Calculate the position to place the Wait Time bar below the class label
+                    waitTimeLabelWidth = waitTimeLabel.getPreferredSize().width;
+                    waitTimeLabelHeight = waitTimeLabel.getPreferredSize().height;
+
+                    // Set the panel size and position
+                    waitTimeXPosition = (400 - waitTimeLabelWidth) / 2;  // Center horizontally
+                    waitTimeYPosition = yPosition + labelHeight + 10;  // 10px gap below class label
+
+                    waitTimePanel.setBounds(waitTimeXPosition - 123, waitTimeYPosition + 20, waitTimeLabelWidth + 58, waitTimeLabelHeight + 20);
+
+                    // Add the panel to the frame
+                    add(waitTimePanel);
+
+                    // Create the panel for the light blue bar (background)
+                    positionPanel.setLayout(new BorderLayout());
+
+// Create a label for the Position text
+                    positionLabel = new JLabel("Position: ", SwingConstants.CENTER);
+                    positionLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
+                    positionLabel.setForeground(Color.BLACK);  // Set text color
+                    positionPanel.setBorder(new LineBorder(Color.BLACK, 2)); // Black border with thickness of 2
+// Add the positionLabel to the panel
+                    positionPanel.add(positionLabel, BorderLayout.CENTER);
+
+// Set the same width as the waitTimePanel
+                    positionLabelWidth = waitTimePanel.getWidth();
+                    positionLabelHeight = positionLabel.getPreferredSize().height;
+
+// Calculate the position to place the Position panel to the right of the waitTimePanel
+                    positionXPosition = waitTimePanel.getX() + waitTimePanel.getWidth() + 4; // 10px gap to the right
+                    positionYPosition = waitTimePanel.getY();  // Align vertically with waitTimePanel
+
+// Set the panel size and position
+                    positionPanel.setBounds(positionXPosition, positionYPosition, positionLabelWidth - 6, positionLabelHeight + 20);
+
+// Add the panel to the frame
+                    add(positionPanel);
+
+                    // Revalidate and repaint the panel to ensure changes are reflected
+                    revalidate();
+                    repaint();
+
+
+                    //keepPositionUpdated(questionTableName, userName, positionLabel);
+
+
+                    //------------------------- Header --------------------------//
+                    //-------------------- Question Table -----------------------//
+
+                    // Add buttons below the table
+                    buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));  // Center the buttons horizontally
+                    buttonPanel.setBounds(15, yPosition + labelHeight + 140, 360, 40);  // Set the position of the button panel
+
+// Create "Add Question" and "Remove Question" buttons
+                    addQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
+                    removeQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
+                    addQuestionButton.setBounds(15, yPosition + labelHeight + 140, 360, 25);
+                    removeQuestionButton.setBounds(15, yPosition + labelHeight + 140, 360, 25);
+
+                    add(addQuestionButton);
+                    add(removeQuestionButton);
+                    // Add buttons to the button panel
+                    //buttonPanel.add(addQuestionButton);
+                    //buttonPanel.add(removeQuestionButton);
+
+// Add the button panel to the main panel
+                    //add(buttonPanel);
+
+                    // Column headers for the table
+                    columnNames = new String[]{"Question Summary"};
+                    rowData = new String[][]{
+                            {""}
+                    };
+// Create the JTable with sample data and column names
+                    questionTable = new JTable(rowData, columnNames);
+
+                    questionTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 14));  // Bolder font for header
+
+// Set the row height to a larger value
+                    int rowHeight = 40; // Adjust this value as needed
+                    questionTable.setRowHeight(rowHeight);  // Set the row height
+
+// Set the font of the table to Georgia
+                    questionTable.setFont(new Font("Georgia", Font.PLAIN, 12));
+
+// Create a cell renderer to center the text in all columns
+                    DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+                    centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+
+// Apply the center renderer to all columns
+                    for (int ii = 0; ii < questionTable.getColumnCount(); ii++) {
+                        questionTable.getColumnModel().getColumn(ii).setCellRenderer(centerRenderer);
+                    }
+
+// Add the table to a JScrollPane for scrollability
+                    JScrollPane tableScrollPane = new JScrollPane(questionTable);
+                    tableScrollPane.setBounds(15, yPosition + labelHeight + 70, 360, 70);  // Position it below the class label
+
+// Set the preferred size of the table for proper display
+                    questionTable.setPreferredScrollableViewportSize(new Dimension(300, 100));  // Adjust as needed
+
+// Add the scroll pane with the table to the panel
+                    add(tableScrollPane);
+                }}
 
 
 //            JLabel messageLabel = new JLabel("Not a Teacher", JLabel.CENTER);
@@ -92,7 +280,6 @@ public class StudentHome extends JPanel {
 //            messageLabel.setForeground(Color.GREEN); // Green color for non-teacher
 //            this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
 
-            ArrayList<String[]> results = databaseManager.checkNameInStudentsTables(userName);
             if (results.isEmpty()) {
                 System.out.println("No records found for the student.");
             } else {
@@ -106,14 +293,14 @@ public class StudentHome extends JPanel {
                 }
             }
             // Get the current time
-            LocalTime currentTime = LocalTime.now();
+            currentTime = LocalTime.now();
 
             // Extract hours and minutes
-            int hour = currentTime.getHour();
-            int minute = currentTime.getMinute();
+            hour = currentTime.getHour();
+            minute = currentTime.getMinute();
 
-            int temporary = 0;
-            String bigToPrint = "";
+            temporary = 0;
+            bigToPrint = "";
 
             for(int i=0;i<results.size();i++){
                 String timePreStart = (results.get(i))[2];
@@ -247,6 +434,7 @@ public class StudentHome extends JPanel {
 
 
                 }
+                stopAutoRefreshThread();
                 frame.getContentPane().removeAll();
                 frame.getContentPane().add(homePage);
                 frame.revalidate();
@@ -254,7 +442,98 @@ public class StudentHome extends JPanel {
                 frame.setSize(400, 225);  // Resize the frame to fit the home page
             }
         });
+
+        startAutoRefreshThread();
     }
+    private void startAutoRefreshThread() {
+        refreshThread = new Thread(() -> {
+            while (running) {
+                try {
+                    updateStudentDashboard();
+                    Thread.sleep(3000); // Adjust interval
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        });
+        refreshThread.start();
+    }
+
+    private void stopAutoRefreshThread() {
+        running = false; // Stop the loop
+        if (refreshThread != null) {
+            refreshThread.interrupt(); // Interrupt the sleep if needed
+        }
+    }
+
+    public void updateStudentDashboard() {
+        // Retrieve and update the current wait time from the database
+        ArrayList<String[]> results = null;
+        try {
+            results = databaseManager.checkNameInStudentsTables(userName);
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        }
+
+        if (results.isEmpty()) {
+            System.out.println("No records found for the student.");
+        } else {
+            for (int i = 0; i < results.size(); i++) {
+                try {
+                    // Parse the times and update wait time and position dynamically
+                    LocalTime startTime = LocalTime.parse((String) results.get(i)[2]);
+                    LocalTime endTime = LocalTime.parse((String) results.get(i)[3]);
+
+                    // Check if current time is within the range and update values accordingly
+                    if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                        String result = (String) results.get(i)[0]; // Get the record identifier
+                        String waitTime = (String) results.get(i)[4];  // Get the wait time value
+                        waitTimeOfClass = waitTime;
+                        periodNumber = extractNumberFromTableName(result);
+                        questionTableName = result.replace("_main", "_questions");
+
+                        int position = databaseManager.getQuestionPosition(questionTableName, userName);
+                        positionLabel.setText("Position: " + position); // Update position label
+                        if(position==-1)
+                        {
+                            positionLabel.setText("Position: N/A");
+                        }
+                        // Check if the student has an active question and update the table accordingly
+                        String input = databaseManager.getQuestionStudent(questionTableName, userName);
+                        if (input.equals("")) {
+                            //positionLabel.setText("Position: N/A");
+                            // No active question
+                            questionTable.setValueAt("No Active Question", 0, 0);
+                            removeQuestionButton.setVisible(false);
+                            addQuestionButton.setVisible(true);
+
+//                            // Update the wait time label and panel color based on the current wait time
+//                            waitTimeLabel.setText("Wait Time: " + waitTime + " seconds");
+//                            if (Integer.parseInt(waitTime) <= 10) {
+//                                waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
+//                            } else {
+//                                waitTimePanel.setBackground(new Color(255, 182, 193)); // Light pink color
+//                            }
+                        } else {
+                            // Active question exists
+                            questionTable.setValueAt(input, 0, 0);
+                            removeQuestionButton.setVisible(true);
+                            addQuestionButton.setVisible(false);
+                            //waitTimeLabel.setText("Wait Time: 0 seconds");
+                            waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
+                        }
+
+                        // Revalidate and repaint to ensure changes are reflected
+                        revalidate();
+                        repaint();
+                    }
+                } catch (DateTimeParseException e) {
+                    System.out.println("Invalid time format in results: " + e.getMessage());
+                }
+            }
+        }
+    }
+
 
     private void initializeTimer(int minutesTillEndOfClass) {
         //System.out.println(minutesTillEndOfClass);  // Debugging line to check if the value is being updated
@@ -352,118 +631,6 @@ public class StudentHome extends JPanel {
     }
     private void initializeStudentDashboard(String classInfo, String className) {
 
-        // Format the class display string
-        String formattedDisplayString = formatClassString(classInfo, className);
-
-        // Set the layout to null for absolute positioning
-        setLayout(null);
-
-        // Create the label with the formatted class display string
-        JLabel classLabel = new JLabel(formattedDisplayString);
-        classLabel.setFont(new Font("Georgia", Font.PLAIN, 16));
-        classLabel.setForeground(Color.BLACK);  // Set text color for the class name
-
-        // Calculate the position for top-center alignment
-        int labelWidth = classLabel.getPreferredSize().width;
-        int labelHeight = classLabel.getPreferredSize().height;
-
-        // For a frame size of 400x325, calculate the x-position to center the label
-        int xPosition = (400 - labelWidth) / 2;  // Center horizontally
-        int yPosition = 50;  // Position the class label 32px from the top (after the top bar)
-
-        // Set the position and size of the label
-        classLabel.setBounds(xPosition, yPosition, labelWidth, labelHeight);
-        add(classLabel);
-
-        // Create the panel for the light blue bar (background)
-        JPanel waitTimePanel = new JPanel();
-        waitTimePanel.setBackground(new Color(255, 182, 193)); // Light red (pinkish) color
-        waitTimePanel.setLayout(new BorderLayout());
-
-        // Create a label for the Wait Time text
-        JLabel waitTimeLabel = new JLabel("Wait Time: 0 seconds", SwingConstants.CENTER);
-        waitTimeLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
-        waitTimeLabel.setForeground(Color.BLACK);  // Set text color
-        waitTimePanel.setBorder(new LineBorder(Color.BLACK, 2)); // Black border with thickness of 2
-        // Add the waitTimeLabel to the panel
-        waitTimePanel.add(waitTimeLabel, BorderLayout.CENTER);
-
-        // Calculate the position to place the Wait Time bar below the class label
-        int waitTimeLabelWidth = waitTimeLabel.getPreferredSize().width;
-        int waitTimeLabelHeight = waitTimeLabel.getPreferredSize().height;
-
-        // Set the panel size and position
-        int waitTimeXPosition = (400 - waitTimeLabelWidth) / 2;  // Center horizontally
-        int waitTimeYPosition = yPosition + labelHeight + 10;  // 10px gap below class label
-
-        waitTimePanel.setBounds(waitTimeXPosition-123, waitTimeYPosition + 20, waitTimeLabelWidth + 58, waitTimeLabelHeight+20);
-
-        // Add the panel to the frame
-        add(waitTimePanel);
-
-        // Create the panel for the light blue bar (background)
-        JPanel positionPanel = new JPanel();
-        positionPanel.setLayout(new BorderLayout());
-
-// Create a label for the Position text
-        JLabel positionLabel = new JLabel("Position: ", SwingConstants.CENTER);
-        positionLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
-        positionLabel.setForeground(Color.BLACK);  // Set text color
-        positionPanel.setBorder(new LineBorder(Color.BLACK, 2)); // Black border with thickness of 2
-// Add the positionLabel to the panel
-        positionPanel.add(positionLabel, BorderLayout.CENTER);
-
-// Set the same width as the waitTimePanel
-        int positionLabelWidth = waitTimePanel.getWidth();
-        int positionLabelHeight = positionLabel.getPreferredSize().height;
-
-// Calculate the position to place the Position panel to the right of the waitTimePanel
-        int positionXPosition = waitTimePanel.getX() + waitTimePanel.getWidth() + 4; // 10px gap to the right
-        int positionYPosition = waitTimePanel.getY();  // Align vertically with waitTimePanel
-
-// Set the panel size and position
-        positionPanel.setBounds(positionXPosition, positionYPosition, positionLabelWidth - 6, positionLabelHeight + 20);
-
-// Add the panel to the frame
-        add(positionPanel);
-
-        // Revalidate and repaint the panel to ensure changes are reflected
-        revalidate();
-        repaint();
-
-
-
-        //keepPositionUpdated(questionTableName, userName, positionLabel);
-
-
-
-
-        //------------------------- Header --------------------------//
-        //-------------------- Question Table -----------------------//
-
-        // Add buttons below the table
-        JPanel buttonPanel = new JPanel();  // Create a new panel for buttons
-        buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));  // Center the buttons horizontally
-        buttonPanel.setBounds(15, yPosition + labelHeight + 140, 360, 40);  // Set the position of the button panel
-
-// Create "Add Question" and "Remove Question" buttons
-        JButton addQuestionButton = new JButton("Add Question");
-        addQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
-        JButton removeQuestionButton = new JButton("Remove Question");
-        removeQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
-        addQuestionButton.setBounds(15,yPosition+labelHeight+140,360,25);
-        removeQuestionButton.setBounds(15,yPosition+labelHeight+140,360,25);
-
-        add(addQuestionButton);
-        add(removeQuestionButton);
-        // Add buttons to the button panel
-        //buttonPanel.add(addQuestionButton);
-        //buttonPanel.add(removeQuestionButton);
-
-// Add the button panel to the main panel
-        //add(buttonPanel);
-
-
         ArrayList<String[]> results1 = null;
         try {
             results1 = databaseManager.checkNameInStudentsTables(userName);
@@ -510,13 +677,14 @@ public class StudentHome extends JPanel {
         }
         int position = databaseManager.getQuestionPosition(questionTableName, userName);
         positionLabel.setText("Position: " + position);
+        if(position==-1)
+        {
+            positionLabel.setText("Position: N/A");
+        }
         waitTimeLabel.setText("Wait Time: " + 0 + " seconds");
         waitTimePanel.setBackground(new Color(144, 238, 144)); // Light green color
         System.out.println("Test: " + waitTimeOfClass);
         String input = databaseManager.getQuestionStudent(questionTableName, userName);
-        String[][] rowData = {
-                {""}
-        };
         if(input.equals("")){
             positionLabel.setText("Position: N/A");
             waitTimeLabel.setText("Wait Time: ## seconds");
@@ -551,40 +719,6 @@ public class StudentHome extends JPanel {
             positionLabel.setText("Position: " + databaseManager.getQuestionPosition(questionTableName, userName));
         }
 
-
-// Column headers for the table
-        String[] columnNames = {"Question Summary"};
-
-// Create the JTable with sample data and column names
-        JTable questionTable = new JTable(rowData, columnNames);
-
-        questionTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 14));  // Bolder font for header
-
-// Set the row height to a larger value
-        int rowHeight = 40; // Adjust this value as needed
-        questionTable.setRowHeight(rowHeight);  // Set the row height
-
-// Set the font of the table to Georgia
-        questionTable.setFont(new Font("Georgia", Font.PLAIN, 12));
-
-// Create a cell renderer to center the text in all columns
-        DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-
-// Apply the center renderer to all columns
-        for (int i = 0; i < questionTable.getColumnCount(); i++) {
-            questionTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
-        }
-
-// Add the table to a JScrollPane for scrollability
-        JScrollPane tableScrollPane = new JScrollPane(questionTable);
-        tableScrollPane.setBounds(15, yPosition + labelHeight + 70, 360, 70);  // Position it below the class label
-
-// Set the preferred size of the table for proper display
-        questionTable.setPreferredScrollableViewportSize(new Dimension(300, 100));  // Adjust as needed
-
-// Add the scroll pane with the table to the panel
-        add(tableScrollPane);
 
 // If the table is empty, set the default value to "No Active Question"
         if(questionTable.getValueAt(0,0).equals("")){
