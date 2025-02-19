@@ -318,7 +318,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -331,7 +331,9 @@ public class HomePage extends JPanel {
                     "QuestionSummary VARCHAR(500), " +
                     "TimeStamp TIME, " +  // Corrected comma
                     "IsQuestionActive BOOLEAN, " +  // Corrected column definition and removed trailing comma
-                    "Response VARCHAR(500)" +
+                    "Response VARCHAR(500)," +
+                    "AttachedCodeFile LONGBLOB," +
+                    "ConsoleOutput VARCHAR(2000)" +
                     ")";
 
             // Execute the SQL query to create the table

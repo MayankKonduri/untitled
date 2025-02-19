@@ -609,8 +609,7 @@ public class DatabaseManager {
         }
     }
 
-    public static void addRecordToTable(String tableName, String studentID, String questionSummary) {
-        // Ensure table name is safe from SQL injection by validating input
+    public static void addRecordToTable(String tableName, String studentID, String questionSummary, byte[] fileBytes, String consoleErrorOutput) {
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
@@ -619,33 +618,31 @@ public class DatabaseManager {
         Connection connection = null;
 
         try {
-            // SQL query to insert data into the specified table
-            String insertSQL = "INSERT INTO " + tableName + " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive) VALUES (?, ?, ?, ?)";
+            String insertSQL = "INSERT INTO " + tableName +
+                    " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive, Response, AttachedCodeFile, ConsoleOutput) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1"; // Your DB URL
-            String DATABASE_USER = "root"; // Replace with your MySQL username
-            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1";
+            String DATABASE_USER = "root";
+            String DATABASE_PASSWORD = "password";
 
-            // Establish connection to the database
             connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
-
-            // Create a prepared statement to prevent SQL injection
             preparedStatement = connection.prepareStatement(insertSQL);
 
-            // Set parameters for the PreparedStatement
-            preparedStatement.setString(1, studentID); // StudentID
-            preparedStatement.setString(2, questionSummary); // QuestionSummary
-
-            // Use java.sql.Timestamp to insert the current time correctly in SQL format
-            preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now())); // Current timestamp (Timestamp)
-
-            // Set the value for the "IsQuestionActive" column (true in this case)
+            preparedStatement.setString(1, studentID);
+            preparedStatement.setString(2, questionSummary);
+            preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
             preparedStatement.setBoolean(4, true);
+            preparedStatement.setString(5, null); // Response column (can be updated later)
 
-            // Execute the insert statement
+            if (fileBytes != null) {
+                preparedStatement.setBytes(6, fileBytes); // Store file as bytes in LONGBLOB
+            } else {
+                preparedStatement.setNull(6, java.sql.Types.BLOB); // Set NULL if no file uploaded
+            }
+
+            preparedStatement.setString(7, consoleErrorOutput);
+
             int rowsAffected = preparedStatement.executeUpdate();
-
-            // Check if the insertion was successful
             if (rowsAffected > 0) {
                 System.out.println("Record successfully added to the table.");
             } else {
@@ -653,16 +650,14 @@ public class DatabaseManager {
             }
 
         } catch (SQLException e) {
-            // Handle SQL exception
             e.printStackTrace();
         } finally {
-            // Close resources to prevent memory leaks
             try {
                 if (preparedStatement != null) {
                     preparedStatement.close();
                 }
                 if (connection != null) {
-                    connection.close(); // Ensure the connection is also closed
+                    connection.close();
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -947,7 +942,7 @@ public class DatabaseManager {
         }
 
     public void removeActiveQuestion(String studentID, String tableName) {
-        String query = "UPDATE " + tableName + " SET isQuestionActive = 0 WHERE studentID = ? AND isQuestionActive = 1";
+        String query = "UPDATE " + tableName + " SET ConsoleOutput = NULL, AttachedCodeFile = NULL, isQuestionActive = 0 WHERE studentID = ? AND isQuestionActive = 1";
 
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD); // Assuming you have a method to get DB connection
              PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -967,7 +962,7 @@ public class DatabaseManager {
     }
 
     public void clearQuestionsList(String tableName1) {
-        String sql = "UPDATE " + tableName1 + " SET isQuestionActive = 0, response = 'Teacher Manually Removed Question' WHERE isQuestionActive = 1";
+        String sql = "UPDATE " + tableName1 + " SET ConsoleOutput = NULL, AttachedCodeFile = NULL, isQuestionActive = 0, response = 'Teacher Manually Removed Question' WHERE isQuestionActive = 1";
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -1004,7 +999,7 @@ public class DatabaseManager {
 
     public void updateQuestionsTable(String studentID, String tableName3, String s) {
         System.out.println(s + " Message Received for Student " + studentID + " in Table " + tableName3);
-        String query = "UPDATE " + tableName3 + " SET Response = ?, isQuestionActive = 0 WHERE studentID = ? AND isQuestionActive = 1";
+        String query = "UPDATE " + tableName3 + " SET Response = ?, isQuestionActive = 0, ConsoleOutput = NULL, AttachedCodeFile = NULL WHERE studentID = ? AND isQuestionActive = 1";
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement(query)) {

@@ -403,7 +403,7 @@ public class QuestionViewer extends JPanel {
     }
 
     private void loadTeacherAndClasses() {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.195.75.116 /qclient1", "root", "password")) {
             PreparedStatement stmt = conn.prepareStatement("SELECT teacher_name FROM teacher WHERE teacher_id = ?");
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();

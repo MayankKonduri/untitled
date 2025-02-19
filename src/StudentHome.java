@@ -9,7 +9,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -729,49 +731,95 @@ public class StudentHome extends JPanel {
         addQuestionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Show a dialog asking for the Question Summary
-                String questionSummary = JOptionPane.showInputDialog(null, "Enter Question Summary:", "Add Question", JOptionPane.PLAIN_MESSAGE);
+                JPanel panel = new JPanel();
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-                // Check if the input is not null or empty
-                if (questionSummary != null && !questionSummary.trim().isEmpty()) {
-                    // If the user provided a question summary
-                    questionTable.setValueAt(questionSummary, 0, 0); // Set the new question summary in the table
-                    System.out.println("Question Added: " + questionSummary);
-                    ArrayList<String[]> results = null;
-                    try {
-                        results = databaseManager.checkNameInStudentsTables(userName);
-                    } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
+                // Question Summary Input
+                JTextField questionSummaryField = new JTextField(30);
+                panel.add(new JLabel("Enter Question Summary:"));
+                panel.add(questionSummaryField);
+
+                // File Upload Section
+                JButton uploadButton = new JButton("Upload Code File");
+                JLabel fileLabel = new JLabel("No file selected");
+                panel.add(new JLabel("Code File:"));
+                panel.add(uploadButton);
+                panel.add(fileLabel);
+
+                final File[] selectedFile = new File[1]; // Store selected file
+                uploadButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        JFileChooser fileChooser = new JFileChooser();
+                        int returnValue = fileChooser.showOpenDialog(null);
+                        if (returnValue == JFileChooser.APPROVE_OPTION) {
+                            selectedFile[0] = fileChooser.getSelectedFile();
+                            fileLabel.setText("Selected: " + selectedFile[0].getName());
+                        }
                     }
-                    if (results.isEmpty()) {
-                        System.out.println("No records found for the student.");
+                });
+
+                // Console Error Output TextArea
+                JTextArea consoleErrorArea = new JTextArea(5, 30);
+                consoleErrorArea.setLineWrap(true);
+                consoleErrorArea.setWrapStyleWord(true);
+                JScrollPane scrollPane = new JScrollPane(consoleErrorArea);
+                panel.add(new JLabel("Console (Error) Output:"));
+                panel.add(scrollPane);
+
+                // Show Dialog
+                int result = JOptionPane.showConfirmDialog(null, panel, "Add Question", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+
+                if (result == JOptionPane.OK_OPTION) {
+                    String questionSummary = questionSummaryField.getText().trim();
+                    String consoleErrorOutput = consoleErrorArea.getText().trim();
+                    byte[] fileBytes = null; // To store file as bytes
+
+                    if (selectedFile[0] != null) {
+                        try {
+                            fileBytes = Files.readAllBytes(selectedFile[0].toPath()); // Read file as byte array
+                        } catch (IOException ex) {
+                            JOptionPane.showMessageDialog(null, "Failed to read file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
                     }
+
+                    if (!questionSummary.isEmpty()) {
+                        questionTable.setValueAt(questionSummary, 0, 0);
+                        System.out.println("Question Added: " + questionSummary);
+
+                        ArrayList<String[]> results = null;
+                        try {
+                            results = databaseManager.checkNameInStudentsTables(userName);
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+
+                        if (results.isEmpty()) {
+                            System.out.println("No records found for the student.");
+                        }
+
                         for (int i = 0; i < results.size(); i++) {
                             try {
-                                // Convert the strings in results[2] and results[3] to LocalTime
-                                LocalTime startTime = LocalTime.parse((String) results.get(i)[2]);  // Parse the start time string
-                                LocalTime endTime = LocalTime.parse((String) results.get(i)[3]);    // Parse the end time string
+                                LocalTime startTime = LocalTime.parse(results.get(i)[2]);
+                                LocalTime endTime = LocalTime.parse(results.get(i)[3]);
 
-                                // Check if the current time is within the range
                                 if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
-                                    String result = (String) results.get(i)[0]; // Get the value from the array (ensure it's a String)
+                                    String tableName = results.get(i)[0];
 
-                                    // Check if the result matches the pattern "something_X_main" and modify it
-                                    if (result.matches(".*_\\d+_main")) {  // Regex to match something_X_main
-                                        result = result.replace("_main", "_questions"); // Replace "_main" with "_questions"
+                                    if (tableName.matches(".*_\\d+_main")) {
+                                        tableName = tableName.replace("_main", "_questions");
                                     }
 
-                                    // Assuming DatabaseManager.addRecordToTable(String tableName, String... values) works this way
-                                    DatabaseManager.addRecordToTable(result, userName, questionSummary);
-                                    positionLabel.setText("Position: " + databaseManager.getQuestionPosition(questionTableName, userName));
+                                    // Insert into database
+                                    DatabaseManager.addRecordToTable(tableName, userName, questionSummary, fileBytes, consoleErrorOutput);
+                                    positionLabel.setText("Position: " + databaseManager.getQuestionPosition(tableName, userName));
                                 }
                             } catch (DateTimeParseException e1) {
-                                // Handle the case where the string cannot be parsed into a LocalTime
                                 System.out.println("Invalid time format in results: " + e1.getMessage());
                             }
                         }
-
-                } else {
+                    }
                 }
                 addQuestionButton.setVisible(false);
                 removeQuestionButton.setVisible(true);
