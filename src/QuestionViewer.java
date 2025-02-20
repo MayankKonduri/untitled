@@ -6,6 +6,9 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.sql.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +22,7 @@ public class QuestionViewer extends JPanel {
     private JTable questionTable;
     private DefaultTableModel tableModel;
     private String[] classPeriods;
-    private int periodNumber;
+    public int periodNumber;
     private int currentIndex = 0;
     private String teacherName;
     private JButton removeQuestionButton = new JButton();
@@ -217,12 +220,53 @@ public class QuestionViewer extends JPanel {
                     if (row != -1) {
                         String studentID = tableModel.getValueAt(row, 0).toString();
                         String questionSummary = tableModel.getValueAt(row, 1).toString();
-                        if (!(questionSummary.equals("No Active Questions"))) {
-                            Pattern pattern = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
-                            Matcher matcher = pattern.matcher(titleLabel.getText());
+                        String consoleOutput = "";
+                        String FileName = "";
+                        Pattern pattern = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
+                        Matcher matcher = pattern.matcher(titleLabel.getText());
+                        if (matcher.find()) {
+                            periodNumber = Integer.parseInt(matcher.group(1)); // Convert to int
+                            System.out.println("Period Number: " + periodNumber);
+                        } else {
+                            System.out.println("Period number not found.");
+                        }
+                        String tableName5 = teacherName + "_" + periodNumber + "_questions";
 
-                            if (matcher.find()) {
-                                periodNumber = Integer.parseInt(matcher.group(1)); // Convert to int
+                        Object[] studentInputValues = databaseManager.getQuestionDetails(studentID, tableName5);
+                        questionSummary = (String) studentInputValues[0];
+                        FileName = (String) studentInputValues[1];
+                         byte[] fileData = (byte[]) studentInputValues[2];
+                        File attachedCodeFile = new File(FileName);
+                        try (FileOutputStream fos = new FileOutputStream(attachedCodeFile)) {
+                            fos.write(fileData);
+                            System.out.println("File saved as: " + attachedCodeFile.getAbsolutePath());
+                        } catch (IOException e1) {
+                            e1.printStackTrace();
+                        }
+                        consoleOutput = (String) studentInputValues[3];
+
+                        System.out.println("Question Summary: " + questionSummary);
+                        System.out.println("Console Output: " + consoleOutput);
+                        System.out.println("File Name: " + FileName);
+
+                        if (Desktop.isDesktopSupported()) {
+                            Desktop desktop = Desktop.getDesktop();
+                            try {
+                                desktop.open(attachedCodeFile); // This will prompt the user to choose an app if none is associated
+                            } catch (IOException e2) {
+                                e2.printStackTrace();
+                            }
+                        } else {
+                            System.out.println("Desktop not supported. Please open the file manually: " + attachedCodeFile.getAbsolutePath());
+                        }
+
+
+                        if (!(questionSummary.equals("No Active Questions"))) {
+                            Pattern pattern1 = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
+                            Matcher matcher1 = pattern1.matcher(titleLabel.getText());
+
+                            if (matcher1.find()) {
+                                periodNumber = Integer.parseInt(matcher1.group(1)); // Convert to int
                                 System.out.println("Period Number: " + periodNumber);
                             } else {
                                 System.out.println("Period number not found.");
@@ -403,7 +447,7 @@ public class QuestionViewer extends JPanel {
     }
 
     private void loadTeacherAndClasses() {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.195.75.116 /qclient1", "root", "password")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password")) {
             PreparedStatement stmt = conn.prepareStatement("SELECT teacher_name FROM teacher WHERE teacher_id = ?");
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();
@@ -458,7 +502,7 @@ public class QuestionViewer extends JPanel {
 
     private void loadQuestionsForCurrentPeriod(Connection existingConn) {
         try (Connection conn = existingConn != null ? existingConn :
-                DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password")) {
+                DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password")) {
 
             String period = classPeriods[currentIndex].split(" ")[0];
             PreparedStatement stmt = conn.prepareStatement("SELECT StudentID, QuestionSummary FROM " +

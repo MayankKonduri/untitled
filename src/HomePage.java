@@ -227,7 +227,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -272,7 +272,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -318,7 +318,7 @@ public class HomePage extends JPanel {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // Connect to your database (replace with your own details)
-            connection = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password");
+            connection = DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password");
 
             // Ensure the database exists
             statement = connection.createStatement();
@@ -328,12 +328,13 @@ public class HomePage extends JPanel {
             // Create SQL query to create the table
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableCreation3 + " (" +
                     "StudentID VARCHAR(100), " +
-                    "QuestionSummary VARCHAR(500), " +
+                    "QuestionSummary LONGTEXT, " +
                     "TimeStamp TIME, " +  // Corrected comma
                     "IsQuestionActive BOOLEAN, " +  // Corrected column definition and removed trailing comma
-                    "Response VARCHAR(500)," +
+                    "Response LONGTEXT," +
+                    "FileName VARCHAR(200)," +
                     "AttachedCodeFile LONGBLOB," +
-                    "ConsoleOutput VARCHAR(2000)" +
+                    "ConsoleOutput LONGTEXT" +
                     ")";
 
             // Execute the SQL query to create the table

@@ -84,7 +84,7 @@ public class StudentHome extends JPanel {
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
         } else {
                     // Database connection details
-                    String url = "jdbc:mysql://10.66.211.244/qclient1"; // Replace with your database URL
+                    String url = "jdbc:mysql://192.168.1.14/qclient1"; // Replace with your database URL
                     String user = "root"; // Replace with your DB username
                     String password = "password"; // Replace with your DB password
                     String tableName = userName + "_waitTime"; // Concatenate userName with "_waitTime"
@@ -788,34 +788,27 @@ public class StudentHome extends JPanel {
                         selectedFile[0] = fileChooser.getSelectedFile();
                         fileLabel.setText("Selected: " + selectedFile[0].getName());
 
-                        // Read entire file
+                        // Read and format first 20 lines of file
                         try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile[0]))) {
                             StringBuilder previewText = new StringBuilder("<html><body style='background-color:#1e1e1e; color:#00ff00; font-family:Courier New; padding:10px;'>");
                             String line;
-                            int maxLineLength = 0;
+                            int lineCount = 0;
 
-                            while ((line = reader.readLine()) != null) {
+                            while ((line = reader.readLine()) != null && lineCount < 20) {
                                 previewText.append("&nbsp;&nbsp;").append(line.replace(" ", "&nbsp;")).append("<br>");
-                                maxLineLength = Math.max(maxLineLength, line.length());
+                                lineCount++;
                             }
                             previewText.append("</body></html>");
 
                             // Create a label to hold the styled HTML content
                             JLabel previewLabel = new JLabel(previewText.toString());
 
-                            // Wrap inside a scroll pane (horizontal & vertical scrolling)
+                            // Wrap inside a JScrollPane for scrolling
                             JScrollPane previewScrollPane = new JScrollPane(previewLabel);
-                            previewScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-                            previewScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-
-                            // Dynamically set the panel size based on the longest line
-                            int panelWidth = Math.min(800, maxLineLength * 8 + 50); // Approximate width calculation
-                            int panelHeight = 400; // Fixed height
-
-                            previewScrollPane.setPreferredSize(new Dimension(panelWidth, panelHeight));
+                            previewScrollPane.setPreferredSize(new Dimension(600, 350));
                             previewScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
 
-                            // Customizing the pop-up panel
+                            // Customizing the pop-up panel for a sleek look
                             JPanel previewPanel = new JPanel(new BorderLayout());
                             previewPanel.setBackground(Color.BLACK);
                             previewPanel.add(previewScrollPane, BorderLayout.CENTER);
@@ -828,7 +821,6 @@ public class StudentHome extends JPanel {
                         }
                     }
                 });
-
 
 
                 // Console Error Output (TextArea + ScrollPane)
@@ -894,7 +886,7 @@ public class StudentHome extends JPanel {
                                     }
 
                                     // Insert into database
-                                    DatabaseManager.addRecordToTable(tableName, userName, questionSummary, fileBytes, consoleErrorOutput, selectedFile[0].getName());
+                                    DatabaseManager.addRecordToTable(tableName, userName, questionSummary, fileBytes, consoleErrorOutput);
                                     positionLabel.setText("Position: " + databaseManager.getQuestionPosition(tableName, userName));
                                 }
                             } catch (DateTimeParseException e1) {

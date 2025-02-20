@@ -14,7 +14,7 @@ import java.util.List;
 
 public class DatabaseManager {
     // JDBC URL, username, and password for the local database
-    private static final String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1";
+    private static final String DATABASE_URL = "jdbc:mysql://10.66.211.244/qclient1";
     private static final String DATABASE_USER = "root"; // Replace with your MySQL username
     private static final String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
     private String userName;
@@ -609,7 +609,7 @@ public class DatabaseManager {
         }
     }
 
-    public static void addRecordToTable(String tableName, String studentID, String questionSummary, byte[] fileBytes, String consoleErrorOutput) {
+    public static void addRecordToTable(String tableName, String studentID, String questionSummary, byte[] fileBytes, String consoleErrorOutput, String FileName) {
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
@@ -619,9 +619,9 @@ public class DatabaseManager {
 
         try {
             String insertSQL = "INSERT INTO " + tableName +
-                    " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive, Response, AttachedCodeFile, ConsoleOutput) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                    " (StudentID, QuestionSummary, TimeStamp, IsQuestionActive, Response, AttachedCodeFile, ConsoleOutput, FileName) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1";
+            String DATABASE_URL = "jdbc:mysql://10.66.211.244/qclient1";
             String DATABASE_USER = "root";
             String DATABASE_PASSWORD = "password";
 
@@ -641,6 +641,7 @@ public class DatabaseManager {
             }
 
             preparedStatement.setString(7, consoleErrorOutput);
+            preparedStatement.setString(8, FileName);
 
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
@@ -674,7 +675,7 @@ public class DatabaseManager {
             // SQL query to retrieve the QuestionSummary for the given studentID and where IsQuestionActive is 1
             String selectSQL = "SELECT QuestionSummary FROM " + questionTableName + " WHERE StudentID = ? AND IsQuestionActive = 1";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.211.244/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -732,7 +733,7 @@ public class DatabaseManager {
             // SQL query to update IsQuestionActive to false (0) for the specified studentID and questionSummary
             String updateSQL = "UPDATE " + tableName + " SET IsQuestionActive = ? WHERE StudentID = ? AND QuestionSummary = ?";
 
-            String DATABASE_URL = "jdbc:mysql://10.195.75.116/qclient1"; // Your DB URL
+            String DATABASE_URL = "jdbc:mysql://10.66.211.244/qclient1"; // Your DB URL
             String DATABASE_USER = "root"; // Replace with your MySQL username
             String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
 
@@ -1021,4 +1022,31 @@ public class DatabaseManager {
             e.printStackTrace();
         }
     }
+    public Object[] getQuestionDetails(String studentID, String tableName) {
+        String query = "SELECT QuestionSummary, FileName, AttachedCodeFile, ConsoleOutput FROM " + tableName + " WHERE studentID = ? AND isQuestionActive = 1";
+        Object[] result = new Object[4]; // To hold [QuestionSummary, FileName, AttachedCodeFile, ConsoleOutput]
+
+        try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, studentID);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    result[0] = rs.getString("QuestionSummary");
+                    result[1] = rs.getString("FileName");
+                    result[2] = rs.getBytes("AttachedCodeFile"); // Gets the BLOB as byte[]
+                    result[3] = rs.getString("ConsoleOutput");
+                } else {
+                    System.out.println("No active question found for student ID: " + studentID);
+                    result[0] = result[1] = result[2] = null; // Optional: Or return some default values
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
 }
