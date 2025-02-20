@@ -872,7 +872,8 @@ public class StudentHome extends JPanel {
 
                     try {
                         // Create a temporary ZIP file
-                        File zipFile = File.createTempFile("submission_", ".zip");
+                        File zipFile = File.createTempFile(userName + "_", ".zip");
+                        //File zipFile = new File(userName + ".zip"); //FIX THISSS!!!
                         try (FileOutputStream fos = new FileOutputStream(zipFile);
                              ZipOutputStream zipOut = new ZipOutputStream(fos)) {
 
