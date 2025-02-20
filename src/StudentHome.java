@@ -9,10 +9,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,6 +19,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class StudentHome extends JPanel {
     private JFrame frame;
@@ -781,15 +781,18 @@ public class StudentHome extends JPanel {
                 fileLabel.setFont(font.deriveFont(Font.BOLD)); // Make text bold
                 panel.add(fileLabel, gbc);
 
-                final File[] selectedFile = new File[1]; // Store selected file
+                final File[] selectedFile = new File[1]; // Final .zip file
+                ArrayList<File> selectedFilesList = new ArrayList<>();
+
+                uploadButton.setText("Upload File");
                 uploadButton.addActionListener(e1 -> {
                     JFileChooser fileChooser = new JFileChooser();
                     if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                        selectedFile[0] = fileChooser.getSelectedFile();
-                        fileLabel.setText("Selected: " + selectedFile[0].getName());
+                        File chosenFile = fileChooser.getSelectedFile();
+                        selectedFilesList.add(chosenFile);
 
-                        // Read entire file
-                        try (BufferedReader reader = new BufferedReader(new FileReader(selectedFile[0]))) {
+                        // File preview logic (same as before)
+                        try (BufferedReader reader = new BufferedReader(new FileReader(chosenFile))) {
                             StringBuilder previewText = new StringBuilder("<html><body style='background-color:#1e1e1e; color:#00ff00; font-family:Courier New; padding:10px;'>");
                             String line;
                             int maxLineLength = 0;
@@ -800,32 +803,35 @@ public class StudentHome extends JPanel {
                             }
                             previewText.append("</body></html>");
 
-                            // Create a label to hold the styled HTML content
                             JLabel previewLabel = new JLabel(previewText.toString());
-
-                            // Wrap inside a scroll pane (horizontal & vertical scrolling)
                             JScrollPane previewScrollPane = new JScrollPane(previewLabel);
                             previewScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
                             previewScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
-                            // Dynamically set the panel size based on the longest line
-                            int panelWidth = Math.min(800, maxLineLength * 8 + 50); // Approximate width calculation
-                            int panelHeight = 400; // Fixed height
+                            int panelWidth = Math.min(800, maxLineLength * 8 + 50);
+                            int panelHeight = 400;
 
                             previewScrollPane.setPreferredSize(new Dimension(panelWidth, panelHeight));
                             previewScrollPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
 
-                            // Customizing the pop-up panel
                             JPanel previewPanel = new JPanel(new BorderLayout());
                             previewPanel.setBackground(Color.BLACK);
                             previewPanel.add(previewScrollPane, BorderLayout.CENTER);
 
-                            // Display pop-up
                             JOptionPane.showMessageDialog(null, previewPanel, "📜 Code Preview", JOptionPane.PLAIN_MESSAGE);
 
                         } catch (IOException ex) {
                             JOptionPane.showMessageDialog(null, "Error reading file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                         }
+
+                        // Update label with selected file names
+                        String fileNames = selectedFilesList.stream()
+                                .map(File::getName)
+                                .collect(Collectors.joining(", "));
+                        fileLabel.setText("File Name(s): " + fileNames);
+
+                        // Change button text
+                        uploadButton.setText("Upload Another File");
                     }
                 });
 
@@ -856,6 +862,42 @@ public class StudentHome extends JPanel {
                     String questionSummary = questionSummaryArea.getText().trim();
                     String consoleErrorOutput = consoleErrorArea.getText().trim();
                     byte[] fileBytes = null; // To store file as bytes
+
+
+
+                    if (selectedFilesList.isEmpty()) {
+                        JOptionPane.showMessageDialog(null, "No files selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
+
+                    try {
+                        // Create a temporary ZIP file
+                        File zipFile = File.createTempFile("submission_", ".zip");
+                        try (FileOutputStream fos = new FileOutputStream(zipFile);
+                             ZipOutputStream zipOut = new ZipOutputStream(fos)) {
+
+                            for (File file : selectedFilesList) {
+                                try (FileInputStream fis = new FileInputStream(file)) {
+                                    ZipEntry zipEntry = new ZipEntry(file.getName());
+                                    zipOut.putNextEntry(zipEntry);
+
+                                    byte[] bytes = new byte[1024];
+                                    int length;
+                                    while ((length = fis.read(bytes)) >= 0) {
+                                        zipOut.write(bytes, 0, length);
+                                    }
+                                    zipOut.closeEntry();
+                                }
+                            }
+                        }
+
+                        // Set the final .zip file to selectedFile[0]
+                        selectedFile[0] = zipFile;
+                        JOptionPane.showMessageDialog(null, "Files zipped successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(null, "Error creating ZIP file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    }
 
                     if (selectedFile[0] != null) {
                         try {
