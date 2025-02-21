@@ -19,6 +19,9 @@ import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -60,6 +63,8 @@ public class StudentHome extends JPanel {
     JTable questionTable;
     private Thread refreshThread;
     private volatile boolean running = true;
+    public boolean successful_1;
+    String className;
 
     public StudentHome(JFrame frame, String userName) throws SQLException {
         this.frame = frame;
@@ -84,7 +89,7 @@ public class StudentHome extends JPanel {
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
         } else {
                     // Database connection details
-                    String url = "jdbc:mysql://10.66.211.244/qclient1"; // Replace with your database URL
+                    String url = "jdbc:mysql://10.195.75.116/qclient1"; // Replace with your database URL
                     String user = "root"; // Replace with your DB username
                     String password = "password"; // Replace with your DB password
                     String tableName = userName + "_waitTime"; // Concatenate userName with "_waitTime"
@@ -321,6 +326,7 @@ public class StudentHome extends JPanel {
                 boolean isBeforeEndTime = (hour < endHour) || (hour == endHour && minute < endMinute);
 
                 if (isInClassTime && isBeforeEndTime) {
+                    className = results.get(i)[1];
                     System.out.println("Current time is within the class time: " + results.get(i)[1]);
                     int currentTimeInMinutes = hour * 60 + minute;
 
@@ -730,6 +736,7 @@ public class StudentHome extends JPanel {
         }
 
 // Add action listeners for the buttons
+        ArrayList<String[]> finalResults = results;
         addQuestionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -783,7 +790,6 @@ public class StudentHome extends JPanel {
 
                 final File[] selectedFile = new File[1]; // Final .zip file
                 ArrayList<File> selectedFilesList = new ArrayList<>();
-
                 uploadButton.setText("Upload File");
                 uploadButton.addActionListener(e1 -> {
                     JFileChooser fileChooser = new JFileChooser();
@@ -820,18 +826,25 @@ public class StudentHome extends JPanel {
 
                             JOptionPane.showMessageDialog(null, previewPanel, "📜 Code Preview", JOptionPane.PLAIN_MESSAGE);
 
+                            successful_1 = true;
+
                         } catch (IOException ex) {
                             JOptionPane.showMessageDialog(null, "Error reading file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                            successful_1 = false;
+                            selectedFilesList.remove(selectedFilesList.size()-1);
                         }
 
-                        // Update label with selected file names
-                        String fileNames = selectedFilesList.stream()
-                                .map(File::getName)
-                                .collect(Collectors.joining(", "));
-                        fileLabel.setText("File Name(s): " + fileNames);
+                        if(successful_1) {
+                            // Update label with selected file names
+                            String fileNames = selectedFilesList.stream()
+                                    .map(File::getName)
+                                    .collect(Collectors.joining(", "));
+                            fileLabel.setText("File Name(s): " + fileNames);
 
-                        // Change button text
-                        uploadButton.setText("Upload Another File");
+                            // Change button text
+                            uploadButton.setText("Upload Another File");
+
+                        }
                     }
                 });
 
@@ -871,8 +884,37 @@ public class StudentHome extends JPanel {
                     }
 
                     try {
+                        Pattern pattern1 = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
+                        Matcher matcher1 = pattern1.matcher(className);
+
+                        if (matcher1.find()) {
+                            periodNumber = Integer.parseInt(matcher1.group(1)); // Convert to int
+                            System.out.println("Period Number: " + periodNumber);
+                        } else {
+                            System.out.println("Period number not found.");
+                        }
+                        String tableName = "Test";
+                        for (int i = 0; i < finalResults.size(); i++) {
+                            try {
+                                LocalTime startTime = LocalTime.parse(finalResults.get(i)[2]);
+                                LocalTime endTime = LocalTime.parse(finalResults.get(i)[3]);
+
+                                if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                                    tableName = finalResults.get(i)[0];
+
+                                    if (tableName.matches(".*_\\d+_main")) {
+                                        tableName = tableName.replace("_main", "_students");
+                                    }
+                                }
+                            } catch (DateTimeParseException e1) {
+                                System.out.println("Invalid time format in results: " + e1.getMessage());
+                            }
+                        }
+
+                        String nName = databaseManager.getStudentName(userName, tableName);
+
                         // Create a temporary ZIP file
-                        File zipFile = File.createTempFile(userName + "_", ".zip");
+                        File zipFile = File.createTempFile(nName + "_", ".zip");
                         //File zipFile = new File(userName + ".zip"); //FIX THISSS!!!
                         try (FileOutputStream fos = new FileOutputStream(zipFile);
                              ZipOutputStream zipOut = new ZipOutputStream(fos)) {

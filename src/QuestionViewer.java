@@ -30,6 +30,7 @@ public class QuestionViewer extends JPanel {
     private DatabaseManager databaseManager = new DatabaseManager(userName);
     private Thread refreshThread;
     private volatile boolean running = true;
+    String studentName;
 
     public QuestionViewer(JFrame frame, String userName) {
         this.frame = frame;
@@ -272,7 +273,7 @@ public class QuestionViewer extends JPanel {
                                 System.out.println("Period number not found.");
                             }
                             String tableName2 = teacherName + "_" + periodNumber + "_students";
-                            String studentName = databaseManager.getStudentName(studentID, tableName2);
+                            studentName = databaseManager.getStudentName(studentID, tableName2);
                             String tableName3 = teacherName + "_" + periodNumber + "_questions";
 
                             // Create the formatted message using JTextPane and StyledDocument
@@ -447,7 +448,7 @@ public class QuestionViewer extends JPanel {
     }
 
     private void loadTeacherAndClasses() {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password")) {
             PreparedStatement stmt = conn.prepareStatement("SELECT teacher_name FROM teacher WHERE teacher_id = ?");
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();
@@ -502,7 +503,7 @@ public class QuestionViewer extends JPanel {
 
     private void loadQuestionsForCurrentPeriod(Connection existingConn) {
         try (Connection conn = existingConn != null ? existingConn :
-                DriverManager.getConnection("jdbc:mysql://10.66.211.244/qclient1", "root", "password")) {
+                DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password")) {
 
             String period = classPeriods[currentIndex].split(" ")[0];
             PreparedStatement stmt = conn.prepareStatement("SELECT StudentID, QuestionSummary FROM " +
