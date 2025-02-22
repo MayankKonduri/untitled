@@ -89,7 +89,7 @@ public class StudentHome extends JPanel {
             this.add(messageLabel, BorderLayout.CENTER); // Add the message label to the panel
         } else {
                     // Database connection details
-                    String url = "jdbc:mysql://10.195.75.116/qclient1"; // Replace with your database URL
+                    String url = "jdbc:mysql://192.168.1.14/qclient1"; // Replace with your database URL
                     String user = "root"; // Replace with your DB username
                     String password = "password"; // Replace with your DB password
                     String tableName = userName + "_waitTime"; // Concatenate userName with "_waitTime"

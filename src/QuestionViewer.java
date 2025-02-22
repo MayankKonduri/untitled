@@ -236,30 +236,13 @@ public class QuestionViewer extends JPanel {
                         Object[] studentInputValues = databaseManager.getQuestionDetails(studentID, tableName5);
                         questionSummary = (String) studentInputValues[0];
                         FileName = (String) studentInputValues[1];
-                         byte[] fileData = (byte[]) studentInputValues[2];
+                        byte[] fileData = (byte[]) studentInputValues[2];
                         File attachedCodeFile = new File(FileName);
-                        try (FileOutputStream fos = new FileOutputStream(attachedCodeFile)) {
-                            fos.write(fileData);
-                            System.out.println("File saved as: " + attachedCodeFile.getAbsolutePath());
-                        } catch (IOException e1) {
-                            e1.printStackTrace();
-                        }
                         consoleOutput = (String) studentInputValues[3];
 
                         System.out.println("Question Summary: " + questionSummary);
                         System.out.println("Console Output: " + consoleOutput);
                         System.out.println("File Name: " + FileName);
-
-                        if (Desktop.isDesktopSupported()) {
-                            Desktop desktop = Desktop.getDesktop();
-                            try {
-                                desktop.open(attachedCodeFile); // This will prompt the user to choose an app if none is associated
-                            } catch (IOException e2) {
-                                e2.printStackTrace();
-                            }
-                        } else {
-                            System.out.println("Desktop not supported. Please open the file manually: " + attachedCodeFile.getAbsolutePath());
-                        }
 
 
                         if (!(questionSummary.equals("No Active Questions"))) {
@@ -276,124 +259,15 @@ public class QuestionViewer extends JPanel {
                             studentName = databaseManager.getStudentName(studentID, tableName2);
                             String tableName3 = teacherName + "_" + periodNumber + "_questions";
 
-                            // Create the formatted message using JTextPane and StyledDocument
-                            JTextPane textPane = new JTextPane();
-                            textPane.setContentType("text/plain");
-                            textPane.setEditable(false);
-                            textPane.setFont(new Font("Georgia", Font.PLAIN, 12)); // Set Georgia font
-
-                            StyledDocument doc = textPane.getStyledDocument();
-
-                            // Define styles for bold and regular text
-                            SimpleAttributeSet boldStyle = new SimpleAttributeSet();
-                            StyleConstants.setBold(boldStyle, true);
-                            StyleConstants.setFontFamily(boldStyle, "Georgia");
-
-                            SimpleAttributeSet regularStyle = new SimpleAttributeSet();
-                            StyleConstants.setBold(regularStyle, false);
-                            StyleConstants.setFontFamily(regularStyle, "Georgia");
-
-                            try {
-                                // Insert styled text
-                                doc.insertString(doc.getLength(), "Student ID: ", boldStyle);
-                                doc.insertString(doc.getLength(), studentID + "\n", regularStyle);
-
-                                doc.insertString(doc.getLength(), "Nickname: ", boldStyle);
-                                doc.insertString(doc.getLength(), studentName + "\n", regularStyle);
-
-                                doc.insertString(doc.getLength(), "Question Summary: ", boldStyle);
-                                doc.insertString(doc.getLength(), questionSummary, regularStyle);
-
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-
-                            // Custom Buttons
-                            JButton comingOverButton = new JButton("Coming Over");
-                            JButton sendResponseButton = new JButton("Send Response");
-                            JButton cancelButton = new JButton("Cancel");
-
-                            Font buttonFont = new Font("Georgia", Font.PLAIN, 12);
-                            comingOverButton.setFont(buttonFont);
-                            sendResponseButton.setFont(buttonFont);
-                            cancelButton.setFont(buttonFont);
-
-                            JPanel buttonPanel = new JPanel();
-                            buttonPanel.add(comingOverButton);
-                            buttonPanel.add(sendResponseButton);
-                            buttonPanel.add(cancelButton);
-
-                            // Add Action Listeners
-                            comingOverButton.addActionListener(e1 -> {
-                                System.out.println("Coming Over selected");
-                                databaseManager.updateQuestionsTable(studentID, tableName3, "Went to Student's Desk");
-                                loadTeacherAndClasses();
-                                SwingUtilities.getWindowAncestor(cancelButton).dispose(); // Close the dialog
-                                // Your "Coming Over" action logic here
-                            });
-
-                            sendResponseButton.addActionListener(e1 -> {
-                                System.out.println("Send Response selected");
-
-                                // Create a new JTextField for typing the response with Georgia font
-                                JTextField responseField = new JTextField(20);
-                                responseField.setFont(new Font("Georgia", Font.PLAIN, 12));  // Set the font to Georgia
-
-                                // Create a JLabel with Georgia font
-                                JLabel promptLabel = new JLabel("Type your response:");
-                                promptLabel.setFont(new Font("Georgia", Font.PLAIN, 12));  // Set the font to Georgia
-
-                                // Create a JPanel to hold the label and text field
-                                JPanel panel = new JPanel();
-                                panel.add(promptLabel);
-                                panel.add(responseField);
-
-                                // Show dialog to enter the response
-                                int option = JOptionPane.showConfirmDialog(frame, panel, "Enter Response", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-
-                                if (option == JOptionPane.OK_OPTION) {
-                                    // Get the response entered by the user
-                                    String userResponse = responseField.getText();
-
-                                    // Handle the response (for example, updating the database or other logic)
-                                    System.out.println("User response: " + userResponse);
-
-                                    // Example of updating the table with the response
-                                    databaseManager.updateQuestionsTable(studentID, tableName3, userResponse); // Call the method to update the database
-                                    loadTeacherAndClasses();
-                                    SwingUtilities.getWindowAncestor(cancelButton).dispose(); // Close the dialog
-                                } else {
-                                    System.out.println("Response input was canceled.");
-                                }
-                            });
-
-
-                            cancelButton.addActionListener(e1 -> {
-                                System.out.println("Cancel selected");
-                                SwingUtilities.getWindowAncestor(cancelButton).dispose(); // Close the dialog
-                            });
-
-                            // Display the custom buttons with the message
-                            JOptionPane.showOptionDialog(
-                                    frame,
-                                    new JScrollPane(textPane),
-                                    "Question Details",
-                                    JOptionPane.DEFAULT_OPTION,
-                                    JOptionPane.INFORMATION_MESSAGE,
-                                    null,
-                                    new Object[]{comingOverButton, sendResponseButton, cancelButton},
-                                    null // No need for default selection
-                            );
-
-                            // Optionally, deselect the row after displaying the popup
-                            questionTable.clearSelection();
-
-                            contentPanel.setBounds(50, 105, 300, 200);
-                            removeQuestionButton.setVisible(false);
-                            clearQuestionListButton.setVisible(true);
+                            stopAutoRefreshThread();
+                            frame.getContentPane().removeAll();
+                            frame.getContentPane().add(new CodeViewer(frame, userName, studentID, studentName, questionSummary, consoleOutput, FileName, fileData, tableName3));
+                            frame.revalidate();
+                            frame.repaint();
+                            frame.setSize(750,675);
                         }
                     }
-                }
+               }
             }
         });
 
@@ -448,7 +322,7 @@ public class QuestionViewer extends JPanel {
     }
 
     private void loadTeacherAndClasses() {
-        try (Connection conn = DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password")) {
+        try (Connection conn = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password")) {
             PreparedStatement stmt = conn.prepareStatement("SELECT teacher_name FROM teacher WHERE teacher_id = ?");
             stmt.setString(1, userName);
             ResultSet rs = stmt.executeQuery();
@@ -503,7 +377,7 @@ public class QuestionViewer extends JPanel {
 
     private void loadQuestionsForCurrentPeriod(Connection existingConn) {
         try (Connection conn = existingConn != null ? existingConn :
-                DriverManager.getConnection("jdbc:mysql://10.195.75.116/qclient1", "root", "password")) {
+                DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password")) {
 
             String period = classPeriods[currentIndex].split(" ")[0];
             PreparedStatement stmt = conn.prepareStatement("SELECT StudentID, QuestionSummary FROM " +
