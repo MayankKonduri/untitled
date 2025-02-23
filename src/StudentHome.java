@@ -1,14 +1,13 @@
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.*;
 import java.io.*;
 import java.nio.file.Files;
 import java.sql.Connection;
@@ -779,7 +778,10 @@ public class StudentHome extends JPanel {
                 gbc.gridx = 1;
                 JButton uploadButton = new JButton("Upload Code File");
                 uploadButton.setFont(font);
+                uploadButton.setEnabled(false);
                 panel.add(uploadButton, gbc);
+
+
 
                 gbc.gridy = 2;
                 JLabel fileLabel = new JLabel("No file selected");
@@ -791,6 +793,106 @@ public class StudentHome extends JPanel {
                 final File[] selectedFile = new File[1]; // Final .zip file
                 ArrayList<File> selectedFilesList = new ArrayList<>();
                 uploadButton.setText("Upload File");
+
+
+
+
+
+                // Console Error Output (TextArea + ScrollPane)
+                gbc.gridx = 0;
+                gbc.gridy = 3;
+                panel.add(createStyledLabel("Console (Error) Output:", font), gbc);
+
+                gbc.gridx = 1;
+                gbc.gridwidth = 2;
+                gbc.fill = GridBagConstraints.BOTH;
+                JTextArea consoleErrorArea = new JTextArea(5, 30);
+                consoleErrorArea.setLineWrap(true);
+                consoleErrorArea.setWrapStyleWord(true);
+                consoleErrorArea.setFont(font);
+                JScrollPane consoleScrollPane = new JScrollPane(consoleErrorArea);
+                consoleScrollPane.setPreferredSize(new Dimension(400, 100)); // Fix size
+                consoleScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+                panel.add(consoleScrollPane, gbc);
+                consoleErrorArea.setForeground(Color.RED);
+                consoleErrorArea.setEnabled(false);
+                consoleErrorArea.setBackground(Color.lightGray);
+
+                // Set the initial placeholder
+                questionSummaryArea.setText("You Will Lose Inputted Data Attempting to Add Question Without Question Summary");
+                questionSummaryArea.setForeground(Color.GRAY); // Grey color for placeholder
+
+// Add a focus listener to handle user interaction with the text area
+                questionSummaryArea.addFocusListener(new FocusAdapter() {
+                    @Override
+                    public void focusGained(FocusEvent e) {
+                        // When the user clicks on the text area, clear the placeholder
+                        if (questionSummaryArea.getText().equals("You Will Lose Inputted Data Attempting to Add Question Without Question Summary")) {
+                            questionSummaryArea.setText("");
+                            questionSummaryArea.setForeground(Color.BLACK); // Reset text color to black when typing
+                        }
+                    }
+
+                    @Override
+                    public void focusLost(FocusEvent e) {
+                        // If the user leaves the text area empty, restore the placeholder text
+                        if (questionSummaryArea.getText().trim().isEmpty()) {
+                            questionSummaryArea.setText("You Will Lose Inputted Data Attempting to Add Question Without Question Summary");
+                            questionSummaryArea.setForeground(Color.GRAY); // Set color to grey for placeholder
+                        }
+                    }
+                });
+
+                frame.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mousePressed(MouseEvent e) {
+                        // Check if the mouse was pressed outside the questionSummaryArea
+                        if (!questionSummaryArea.contains(e.getPoint())) {
+                            System.out.println("Clicked outside the questionSummaryArea");
+                            if (questionSummaryArea.getText().trim().isEmpty()) {
+                                questionSummaryArea.setText("You Will Lose Inputted Data Attempting to Add Question Without Question Summary");
+                                questionSummaryArea.setForeground(Color.RED);  // Placeholder text color
+                            }
+                        } else {
+                            System.out.println("Clicked inside the questionSummaryArea");
+                        }
+                    }
+                });
+
+// Update the button state based on whether the text area is empty
+                questionSummaryArea.getDocument().addDocumentListener(new DocumentListener() {
+                    private void updateButtonState() {
+                        boolean isEmpty = questionSummaryArea.getText().trim().isEmpty();
+                        uploadButton.setEnabled(!isEmpty);
+                        consoleErrorArea.setEnabled(!isEmpty);
+
+                        // Show red warning if the area is empty when attempting to submit
+                        if (isEmpty) {
+                            questionSummaryArea.setForeground(Color.RED);
+                        } else {
+                            questionSummaryArea.setForeground(Color.BLACK); // Reset to normal color
+                        }
+                    }
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        updateButtonState();
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        updateButtonState();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        updateButtonState();
+                    }
+                });
+
+
+
+
                 uploadButton.addActionListener(e1 -> {
                     JFileChooser fileChooser = new JFileChooser();
                     if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
@@ -843,30 +945,12 @@ public class StudentHome extends JPanel {
 
                             // Change button text
                             uploadButton.setText("Upload Another File");
-
+                            consoleErrorArea.setForeground(Color.BLACK);
+                            consoleErrorArea.setEnabled(true);
+                            consoleErrorArea.setBackground(Color.WHITE);
                         }
                     }
                 });
-
-
-
-                // Console Error Output (TextArea + ScrollPane)
-                gbc.gridx = 0;
-                gbc.gridy = 3;
-                panel.add(createStyledLabel("Console (Error) Output:", font), gbc);
-
-                gbc.gridx = 1;
-                gbc.gridwidth = 2;
-                gbc.fill = GridBagConstraints.BOTH;
-                JTextArea consoleErrorArea = new JTextArea(5, 30);
-                consoleErrorArea.setLineWrap(true);
-                consoleErrorArea.setWrapStyleWord(true);
-                consoleErrorArea.setFont(font);
-                JScrollPane consoleScrollPane = new JScrollPane(consoleErrorArea);
-                consoleScrollPane.setPreferredSize(new Dimension(400, 100)); // Fix size
-                consoleScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                panel.add(consoleScrollPane, gbc);
-
 
                 // Show Dialog
                 int result = JOptionPane.showConfirmDialog(null, panel, "Add Question", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
@@ -875,12 +959,17 @@ public class StudentHome extends JPanel {
                     String questionSummary = questionSummaryArea.getText().trim();
                     String consoleErrorOutput = consoleErrorArea.getText().trim();
                     byte[] fileBytes = null; // To store file as bytes
+// Check if the questionSummary is empty
+                    if (questionSummary.isEmpty() || questionSummary.equals("You Will Lose Inputted Data Attempting to Add Question Without Question Summary")) {
+                        // Show an error message
+                        JOptionPane.showMessageDialog(null, "Question summary cannot be empty!", "Error", JOptionPane.ERROR_MESSAGE);
 
+                        // Ensure data is preserved (no need to reset fields if user hasn't changed anything)
+                        questionSummaryArea.setText(questionSummary);
+                        consoleErrorArea.setText(consoleErrorOutput);
 
-
-                    if (selectedFilesList.isEmpty()) {
-                        JOptionPane.showMessageDialog(null, "No files selected.", "Warning", JOptionPane.WARNING_MESSAGE);
-                        return;
+                        // Return early to avoid further processing, but keep OptionPane open
+                        return; // OptionPane stays open, allowing the user to fill out the summary again
                     }
 
                     try {
@@ -913,6 +1002,11 @@ public class StudentHome extends JPanel {
 
                         String nName = databaseManager.getStudentName(userName, tableName);
 
+
+//                    if (selectedFilesList.isEmpty()) {
+//                        JOptionPane.showMessageDialog(null, "No files selected.", "Warning", JOptionPane.WARNING_MESSAGE);
+//                        return;
+//                    }
                         // Create a temporary ZIP file
                         File zipFile = File.createTempFile(nName + "_", ".zip");
                         //File zipFile = new File(userName + ".zip"); //FIX THISSS!!!
@@ -936,7 +1030,7 @@ public class StudentHome extends JPanel {
 
                         // Set the final .zip file to selectedFile[0]
                         selectedFile[0] = zipFile;
-                        JOptionPane.showMessageDialog(null, "Files zipped successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                        //JOptionPane.showMessageDialog(null, "Files zipped successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
 
                     } catch (IOException ex) {
                         JOptionPane.showMessageDialog(null, "Error creating ZIP file: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
@@ -978,9 +1072,15 @@ public class StudentHome extends JPanel {
                                         tableName = tableName.replace("_main", "_questions");
                                     }
 
-                                    // Insert into database
-                                    DatabaseManager.addRecordToTable(tableName, userName, questionSummary, fileBytes, consoleErrorOutput, selectedFile[0].getName());
-                                    positionLabel.setText("Position: " + databaseManager.getQuestionPosition(tableName, userName));
+                                    if (selectedFilesList.isEmpty()) {
+                                        // Insert into database
+                                        DatabaseManager.addRecordToTable(tableName, userName, questionSummary, null, consoleErrorOutput, "No File(s) Attached");
+                                        positionLabel.setText("Position: " + databaseManager.getQuestionPosition(tableName, userName));
+                                    } else{
+                                        // Insert into database
+                                        DatabaseManager.addRecordToTable(tableName, userName, questionSummary, fileBytes, consoleErrorOutput, selectedFile[0].getName());
+                                        positionLabel.setText("Position: " + databaseManager.getQuestionPosition(tableName, userName));
+                                    }
                                 }
                             } catch (DateTimeParseException e1) {
                                 System.out.println("Invalid time format in results: " + e1.getMessage());
