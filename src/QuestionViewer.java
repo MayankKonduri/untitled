@@ -38,18 +38,14 @@ public class QuestionViewer extends JPanel {
         this.classPeriods = new String[7];
         this.databaseManager = new DatabaseManager(userName);
 
-
         setLayout(null);
 
-        // Panel Title
         JLabel panelTitle = new JLabel("Questions-Viewer");
         panelTitle.setFont(new Font("Georgia", Font.BOLD, 18));
         panelTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        panelTitle.setBounds(50, 20, 300, 30); // Adjusted to span across the width of the panel
+        panelTitle.setBounds(50, 20, 300, 30);
         add(panelTitle);
 
-
-        // Home Button
         JButton homeButton = new JButton("Home");
         homeButton.setFont(new Font("Georgia", Font.BOLD, 10));
         homeButton.setBounds(15, 10, 65, 20);
@@ -66,29 +62,25 @@ public class QuestionViewer extends JPanel {
         });
         add(homeButton);
 
-
-        // Custom Panel for Title + Navigation
         JPanel titleBarPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                g.setColor(new Color(200, 200, 200)); // Light grey background
+                g.setColor(new Color(200, 200, 200));
                 g.fillRect(0, 0, getWidth(), getHeight());
             }
         };
         titleBarPanel.setLayout(null);
-        titleBarPanel.setBounds(50, 60, 300, 35); // Custom width covering a little to the left and right
+        titleBarPanel.setBounds(50, 60, 300, 35);
         titleBarPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
         add(titleBarPanel);
 
-// Title Label
         titleLabel = new JLabel("Loading...");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 14));
         titleLabel.setBounds(0, 7, 310, 20);
         titleLabel.setHorizontalAlignment(SwingConstants.CENTER);
         titleBarPanel.add(titleLabel);
 
-// Navigation Bar (Inside the same panel)
         JButton prevButton = new JButton("<");
         JButton nextButton = new JButton(">");
         pageLabel = new JLabel("1");
@@ -100,37 +92,30 @@ public class QuestionViewer extends JPanel {
         titleBarPanel.add(prevButton);
         titleBarPanel.add(nextButton);
 
-        // Content Panel (Table)
         contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBounds(50, 105, 300, 200);
         contentPanel.setBorder(BorderFactory.createLineBorder(Color.BLACK, 2));
         add(contentPanel);
 
-        // Table Setup
         tableModel = new DefaultTableModel(new String[]{"Student ID", "Question Summary"}, 0);
         questionTable = new JTable(tableModel);
         questionTable.setFont(new Font("Georgia", Font.PLAIN, 10));
         questionTable.setRowHeight(30);
         questionTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 14));
-        questionTable.setDefaultEditor(Object.class, null); // Make table non-editable
+        questionTable.setDefaultEditor(Object.class, null);
         contentPanel.add(new JScrollPane(questionTable), BorderLayout.CENTER);
 
-        // Center all cells in the table
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
-        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);  // Center the content
+        centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 
-        // Apply to all columns
         for (int i = 0; i < questionTable.getColumnCount(); i++) {
             questionTable.getColumnModel().getColumn(i).setCellRenderer(centerRenderer);
         }
 
+        questionTable.setDefaultEditor(Object.class, null);
 
-        questionTable.setDefaultEditor(Object.class, null); // Make table non-editable
-
-        // Add JTable to JScrollPane to enable scrolling
         JScrollPane scrollPane = new JScrollPane(questionTable);
-        contentPanel.add(scrollPane, BorderLayout.CENTER);  // Ensure scrollPane is added to the center
-
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
 
         removeQuestionButton.setText("Remove Question");
         removeQuestionButton.setFont(new Font("Georgia", Font.PLAIN, 12));
@@ -138,7 +123,6 @@ public class QuestionViewer extends JPanel {
         add(removeQuestionButton);
         removeQuestionButton.setVisible(false);
 
-        // Modify the event listener for the removeQuestionButton
         removeQuestionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -147,21 +131,19 @@ public class QuestionViewer extends JPanel {
                     String studentID = tableModel.getValueAt(selectedRow, 0).toString();
                     String questionSummary = tableModel.getValueAt(selectedRow, 1).toString();
 
-                    // Print the message with the requested format
                     System.out.println("Remove Requested: " + questionSummary + " " + titleLabel.getText() + " " + teacherName);
 
-                    // Pattern to extract the number before "st", "nd", "rd", or "th"
                     Pattern pattern = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
                     Matcher matcher = pattern.matcher(titleLabel.getText());
 
                     if (matcher.find()) {
-                        periodNumber = Integer.parseInt(matcher.group(1)); // Convert to int
+                        periodNumber = Integer.parseInt(matcher.group(1));
                         System.out.println("Period Number: " + periodNumber);
                     } else {
                         System.out.println("Period number not found.");
                     }
                     String tableName = teacherName + "_" + periodNumber + "_questions";
-                    // After the removal, update the UI or do other tasks
+
                     removeQuestionButton.setVisible(false);
                     clearQuestionListButton.setVisible(true);
                     questionTable.clearSelection();
@@ -171,7 +153,6 @@ public class QuestionViewer extends JPanel {
                 }
             }
         });
-
 
         clearQuestionListButton.setText("Clear List");
         clearQuestionListButton.setFont(new Font("Georgia", Font.PLAIN, 12));
@@ -186,7 +167,7 @@ public class QuestionViewer extends JPanel {
                 Matcher matcher = pattern.matcher(titleLabel.getText());
 
                 if (matcher.find()) {
-                    periodNumber = Integer.parseInt(matcher.group(1)); // Convert to int
+                    periodNumber = Integer.parseInt(matcher.group(1));
                     System.out.println("Period Number: " + periodNumber);
                 } else {
                     System.out.println("Period number not found.");
@@ -199,7 +180,6 @@ public class QuestionViewer extends JPanel {
 
         });
 
-        // Table Row Selection Event
         questionTable.getSelectionModel().addListSelectionListener(e -> {
             int selectedRow = questionTable.getSelectedRow();
             if (selectedRow != -1) {
@@ -226,7 +206,7 @@ public class QuestionViewer extends JPanel {
                         Pattern pattern = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
                         Matcher matcher = pattern.matcher(titleLabel.getText());
                         if (matcher.find()) {
-                            periodNumber = Integer.parseInt(matcher.group(1)); // Convert to int
+                            periodNumber = Integer.parseInt(matcher.group(1));
                             System.out.println("Period Number: " + periodNumber);
                         } else {
                             System.out.println("Period number not found.");
@@ -242,7 +222,7 @@ public class QuestionViewer extends JPanel {
                             Matcher matcher1 = pattern1.matcher(titleLabel.getText());
 
                             if (matcher1.find()) {
-                                periodNumber = Integer.parseInt(matcher1.group(1)); // Convert to int
+                                periodNumber = Integer.parseInt(matcher1.group(1));
                                 System.out.println("Period Number: " + periodNumber);
                             } else {
                                 System.out.println("Period number not found.");
@@ -251,15 +231,13 @@ public class QuestionViewer extends JPanel {
                             studentName = databaseManager.getStudentName(studentID, tableName2);
                             String tableName3 = teacherName + "_" + periodNumber + "_questions";
 
-                            // Create the formatted message using JTextPane and StyledDocument
                             JTextPane textPane = new JTextPane();
                             textPane.setContentType("text/plain");
                             textPane.setEditable(false);
-                            textPane.setFont(new Font("Georgia", Font.PLAIN, 12)); // Set Georgia font
+                            textPane.setFont(new Font("Georgia", Font.PLAIN, 12));
 
                             StyledDocument doc = textPane.getStyledDocument();
 
-                            // Define styles for bold and regular text
                             SimpleAttributeSet boldStyle = new SimpleAttributeSet();
                             StyleConstants.setBold(boldStyle, true);
                             StyleConstants.setFontFamily(boldStyle, "Georgia");
@@ -269,7 +247,7 @@ public class QuestionViewer extends JPanel {
                             StyleConstants.setFontFamily(regularStyle, "Georgia");
 
                             try {
-                                // Insert styled text
+
                                 doc.insertString(doc.getLength(), "Student ID: ", boldStyle);
                                 doc.insertString(doc.getLength(), studentID + "\n", regularStyle);
 
@@ -283,7 +261,6 @@ public class QuestionViewer extends JPanel {
                                 ex.printStackTrace();
                             }
 
-                            // Custom Buttons
                             JButton comingOverButton = new JButton("Coming Over");
                             JButton sendResponseButton = new JButton("Send Response");
                             JButton cancelButton = new JButton("Cancel");
@@ -298,57 +275,48 @@ public class QuestionViewer extends JPanel {
                             buttonPanel.add(sendResponseButton);
                             buttonPanel.add(cancelButton);
 
-                            // Add Action Listeners
                             comingOverButton.addActionListener(e1 -> {
                                 System.out.println("Coming Over selected");
                                 databaseManager.updateQuestionsTable(studentID, tableName3, "Went to Student's Desk");
                                 loadTeacherAndClasses();
-                                SwingUtilities.getWindowAncestor(cancelButton).dispose(); // Close the dialog
-                                // Your "Coming Over" action logic here
+                                SwingUtilities.getWindowAncestor(cancelButton).dispose();
+
                             });
 
                             sendResponseButton.addActionListener(e1 -> {
                                 System.out.println("Send Response selected");
 
-                                // Create a new JTextField for typing the response with Georgia font
                                 JTextField responseField = new JTextField(20);
-                                responseField.setFont(new Font("Georgia", Font.PLAIN, 12));  // Set the font to Georgia
+                                responseField.setFont(new Font("Georgia", Font.PLAIN, 12));
 
-                                // Create a JLabel with Georgia font
                                 JLabel promptLabel = new JLabel("Type your response:");
-                                promptLabel.setFont(new Font("Georgia", Font.PLAIN, 12));  // Set the font to Georgia
+                                promptLabel.setFont(new Font("Georgia", Font.PLAIN, 12));
 
-                                // Create a JPanel to hold the label and text field
                                 JPanel panel = new JPanel();
                                 panel.add(promptLabel);
                                 panel.add(responseField);
 
-                                // Show dialog to enter the response
                                 int option = JOptionPane.showConfirmDialog(frame, panel, "Enter Response", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                                 if (option == JOptionPane.OK_OPTION) {
-                                    // Get the response entered by the user
+
                                     String userResponse = responseField.getText();
 
-                                    // Handle the response (for example, updating the database or other logic)
                                     System.out.println("User response: " + userResponse);
 
-                                    // Example of updating the table with the response
-                                    databaseManager.updateQuestionsTable(studentID, tableName3, userResponse); // Call the method to update the database
+                                    databaseManager.updateQuestionsTable(studentID, tableName3, userResponse);
                                     loadTeacherAndClasses();
-                                    SwingUtilities.getWindowAncestor(cancelButton).dispose(); // Close the dialog
+                                    SwingUtilities.getWindowAncestor(cancelButton).dispose();
                                 } else {
                                     System.out.println("Response input was canceled.");
                                 }
                             });
 
-
                             cancelButton.addActionListener(e1 -> {
                                 System.out.println("Cancel selected");
-                                SwingUtilities.getWindowAncestor(cancelButton).dispose(); // Close the dialog
+                                SwingUtilities.getWindowAncestor(cancelButton).dispose();
                             });
 
-                            // Display the custom buttons with the message
                             JOptionPane.showOptionDialog(
                                     frame,
                                     new JScrollPane(textPane),
@@ -357,10 +325,9 @@ public class QuestionViewer extends JPanel {
                                     JOptionPane.INFORMATION_MESSAGE,
                                     null,
                                     new Object[]{comingOverButton, sendResponseButton, cancelButton},
-                                    null // No need for default selection
+                                    null
                             );
 
-                            // Optionally, deselect the row after displaying the popup
                             questionTable.clearSelection();
 
                             contentPanel.setBounds(50, 105, 300, 200);
@@ -368,59 +335,51 @@ public class QuestionViewer extends JPanel {
                             clearQuestionListButton.setVisible(true);
                         }
                         else{
-                                byte[] fileData = (byte[]) studentInputValues[2];
-                                consoleOutput = (String) studentInputValues[3];
+                            byte[] fileData = (byte[]) studentInputValues[2];
+                            consoleOutput = (String) studentInputValues[3];
 
-                                System.out.println("Question Summary: " + questionSummary);
-                                System.out.println("Console Output: " + consoleOutput);
-                                System.out.println("File Name: " + FileName);
+                            System.out.println("Question Summary: " + questionSummary);
+                            System.out.println("Console Output: " + consoleOutput);
+                            System.out.println("File Name: " + FileName);
 
+                            if (!(questionSummary.equals("No Active Questions"))) {
+                                Pattern pattern1 = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
+                                Matcher matcher1 = pattern1.matcher(titleLabel.getText());
 
-                                if (!(questionSummary.equals("No Active Questions"))) {
-                                    Pattern pattern1 = Pattern.compile("\\b(\\d+)(st|nd|rd|th)\\b");
-                                    Matcher matcher1 = pattern1.matcher(titleLabel.getText());
-
-                                    if (matcher1.find()) {
-                                        periodNumber = Integer.parseInt(matcher1.group(1)); // Convert to int
-                                        System.out.println("Period Number: " + periodNumber);
-                                    } else {
-                                        System.out.println("Period number not found.");
-                                    }
-                                    String tableName2 = teacherName + "_" + periodNumber + "_students";
-                                    studentName = databaseManager.getStudentName(studentID, tableName2);
-                                    String tableName3 = teacherName + "_" + periodNumber + "_questions";
-
-                                    stopAutoRefreshThread();
-                                    frame.getContentPane().removeAll();
-                                    frame.getContentPane().add(new CodeViewer(frame, userName, studentID, studentName, questionSummary, consoleOutput, FileName, fileData, tableName3));
-                                    frame.revalidate();
-                                    frame.repaint();
-                                    frame.setSize(750,675);
+                                if (matcher1.find()) {
+                                    periodNumber = Integer.parseInt(matcher1.group(1));
+                                    System.out.println("Period Number: " + periodNumber);
+                                } else {
+                                    System.out.println("Period number not found.");
                                 }
+                                String tableName2 = teacherName + "_" + periodNumber + "_students";
+                                studentName = databaseManager.getStudentName(studentID, tableName2);
+                                String tableName3 = teacherName + "_" + periodNumber + "_questions";
+
+                                stopAutoRefreshThread();
+                                frame.getContentPane().removeAll();
+                                frame.getContentPane().add(new CodeViewer(frame, userName, studentID, studentName, questionSummary, consoleOutput, FileName, fileData, tableName3));
+                                frame.revalidate();
+                                frame.repaint();
+                                frame.setSize(750,675);
+                            }
 
                         }
                     }
-               }
+                }
             }
         });
 
-
-
-
-
-        // Button Listeners for Navigation
         prevButton.addActionListener(e -> navigate(false));
         nextButton.addActionListener(e -> navigate(true));
 
-        // Load Data
         loadTeacherAndClasses();
         startAutoRefreshThread();
-
 
         this.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // Check if click is OUTSIDE the table
+
                 if (!questionTable.getBounds().contains(e.getPoint())) {
                     questionTable.clearSelection();
 
@@ -438,7 +397,7 @@ public class QuestionViewer extends JPanel {
             while (running) {
                 try {
                     loadTeacherAndClasses();
-                    Thread.sleep(3000); // Adjust interval
+                    Thread.sleep(3000);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -448,9 +407,9 @@ public class QuestionViewer extends JPanel {
     }
 
     private void stopAutoRefreshThread() {
-        running = false; // Stop the loop
+        running = false;
         if (refreshThread != null) {
-            refreshThread.interrupt(); // Interrupt the sleep if needed
+            refreshThread.interrupt();
         }
     }
 
@@ -476,10 +435,7 @@ public class QuestionViewer extends JPanel {
                     classPeriods[i - 1] = rs.next() ? i + "th Period " + rs.getString("ClassName") : "N/A";
                 }
 
-
-
-
-                }
+            }
 
             updateTitle();
             loadQuestionsForCurrentPeriod(conn);

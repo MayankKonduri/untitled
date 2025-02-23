@@ -36,21 +36,16 @@ public class CodeViewer extends JPanel {
         setLayout(new BorderLayout());
         setPreferredSize(new Dimension(800, 700));
 
-
-        // Add top section for Student Info
         JPanel infoPanel = new JPanel();
         infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.Y_AXIS));
 
-        // Create the formatted message using JTextPane and StyledDocument
         JTextPane textPane = new JTextPane();
         textPane.setContentType("text/plain");
         textPane.setEditable(false);
-        textPane.setFont(new Font("Georgia", Font.PLAIN, 12)); // Set Georgia font for the entire text
+        textPane.setFont(new Font("Georgia", Font.PLAIN, 12));
 
-        // Create a styled document to apply different styles to different parts
         StyledDocument doc = textPane.getStyledDocument();
 
-        // Define the styles
         SimpleAttributeSet boldStyle = new SimpleAttributeSet();
         StyleConstants.setBold(boldStyle, true);
         StyleConstants.setFontFamily(boldStyle, "Georgia");
@@ -59,47 +54,40 @@ public class CodeViewer extends JPanel {
         StyleConstants.setBold(regularStyle, false);
         StyleConstants.setFontFamily(regularStyle, "Georgia");
 
-        // Insert the message parts with different styles
         try {
-            doc.insertString(doc.getLength(), "Student ID: ", boldStyle);  // Bold "ID:"
-            doc.insertString(doc.getLength(), studentID + "\n", regularStyle); // Normal Student ID
+            doc.insertString(doc.getLength(), "Student ID: ", boldStyle);
+            doc.insertString(doc.getLength(), studentID + "\n", regularStyle);
 
-            doc.insertString(doc.getLength(), "Nickname: ", boldStyle);  // Bold "Nickname:"
-            doc.insertString(doc.getLength(), studentName + "\n", regularStyle); // Normal Nickname
+            doc.insertString(doc.getLength(), "Nickname: ", boldStyle);
+            doc.insertString(doc.getLength(), studentName + "\n", regularStyle);
 
-            doc.insertString(doc.getLength(), "Question Summary: ", boldStyle);  // Bold "Question Summary:"
-            doc.insertString(doc.getLength(), questionSummary + "\n", regularStyle); // Normal Question Summary
+            doc.insertString(doc.getLength(), "Question Summary: ", boldStyle);
+            doc.insertString(doc.getLength(), questionSummary + "\n", regularStyle);
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
 
-        // Add the JTextPane to the info panel
         JScrollPane scrollPane = new JScrollPane(textPane);
-        scrollPane.setPreferredSize(new Dimension(750, 75));  // Set preferred size to fit within the window
+        scrollPane.setPreferredSize(new Dimension(750, 75));
         infoPanel.add(scrollPane);
 
-        // Add the info panel to the main panel
-        infoPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10)); // Padding around the panel
+        infoPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(infoPanel, BorderLayout.NORTH);
 
-        // Add the tabbed pane for code files
         tabbedPane = new JTabbedPane();
-        unzipAndDisplayCodeFiles();  // Unzip and display code files in tabs
+        unzipAndDisplayCodeFiles();
 
-        // Create the console output area
         JTextArea consoleTextArea = new JTextArea(consoleOutput);
         consoleTextArea.setEditable(false);
-        consoleTextArea.setFont(new Font("Consolas", Font.PLAIN, 12)); // Use Arial font
+        consoleTextArea.setFont(new Font("Consolas", Font.PLAIN, 12));
         JScrollPane consoleScrollPane = new JScrollPane(consoleTextArea);
-        consoleScrollPane.setPreferredSize(new Dimension(750, 200)); // Adjusted height for console output area
+        consoleScrollPane.setPreferredSize(new Dimension(750, 200));
 
-        // Use JSplitPane to allow resizing between code and console sections
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tabbedPane, consoleScrollPane);
-        splitPane.setResizeWeight(0.8); // Gives more space to the code part initially
-        splitPane.setDividerLocation(600); // Adjust this value to your preference
+        splitPane.setResizeWeight(0.8);
+        splitPane.setDividerLocation(600);
         add(splitPane, BorderLayout.CENTER);
 
-        // Add action buttons
         JPanel buttonPanel = new JPanel();
         JButton comingOverButton = createButton("Coming Over", e -> handleComingOver());
         JButton sendResponseButton = createButton("Send Response", e -> handleSendResponse());
@@ -124,12 +112,9 @@ public class CodeViewer extends JPanel {
         add(buttonPanel, BorderLayout.PAGE_END);
     }
 
-    /**
-     * Unzips the code files and displays them in tabs, with line numbers next to the code.
-     */
     private void unzipAndDisplayCodeFiles() {
         try {
-            // Unzip the fileData into a temporary directory
+
             File tempDir = new File(System.getProperty("java.io.tmpdir"), "codeFiles");
             tempDir.mkdir();
 
@@ -137,7 +122,7 @@ public class CodeViewer extends JPanel {
                 ZipEntry entry;
                 while ((entry = zis.getNextEntry()) != null) {
                     if (!entry.isDirectory()) {
-                        // Read the file content
+
                         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                         byte[] buffer = new byte[1024];
                         int length;
@@ -145,14 +130,12 @@ public class CodeViewer extends JPanel {
                             byteArrayOutputStream.write(buffer, 0, length);
                         }
 
-                        // Add a new tab for each file
                         String fileContent = byteArrayOutputStream.toString();
                         String fileName = entry.getName();
                         JTextPane textPane = new JTextPane();
                         textPane.setText(fileContent);
-                        textPane.setFont(new Font("Monospaced", Font.PLAIN, 12)); // Monospaced font for code
+                        textPane.setFont(new Font("Monospaced", Font.PLAIN, 12));
 
-                        // Add line numbers to the side of the code
                         JTextArea lineNumbers = new JTextArea(getLineNumbers(fileContent));
                         lineNumbers.setEditable(false);
                         lineNumbers.setFont(new Font("Monospaced", Font.PLAIN, 12));
@@ -163,7 +146,6 @@ public class CodeViewer extends JPanel {
                         codePanel.add(new JScrollPane(lineNumbers), BorderLayout.WEST);
                         codePanel.add(new JScrollPane(textPane), BorderLayout.CENTER);
 
-                        // Wrap the code content in a JScrollPane for scrolling
                         JScrollPane codeScrollPane = new JScrollPane(codePanel);
                         tabbedPane.addTab(fileName, codeScrollPane);
                         tabbedPane.setFont(new Font("Georgia",Font.PLAIN,12));
@@ -177,12 +159,6 @@ public class CodeViewer extends JPanel {
         }
     }
 
-    /**
-     * Generate line numbers for the code content.
-     *
-     * @param code The code content as a string.
-     * @return A string representing line numbers.
-     */
     private String getLineNumbers(String code) {
         String[] lines = code.split("\n");
         StringBuilder lineNumbers = new StringBuilder();
@@ -192,23 +168,13 @@ public class CodeViewer extends JPanel {
         return lineNumbers.toString();
     }
 
-    /**
-     * Creates a button with the specified label and action listener.
-     *
-     * @param text   The text to display on the button.
-     * @param action The action listener to handle button clicks.
-     * @return The created button.
-     */
     private JButton createButton(String text, ActionListener action) {
         JButton button = new JButton(text);
-        button.setFont(new Font("Arial", Font.PLAIN, 12)); // Use Arial font
+        button.setFont(new Font("Arial", Font.PLAIN, 12));
         button.addActionListener(action);
         return button;
     }
 
-    /**
-     * Handles the "Coming Over" button action.
-     */
     private void handleComingOver() {
         System.out.println("Coming Over selected");
         databaseManager.updateQuestionsTable(studentID, tableName3, "Went to Student's Desk");
@@ -219,9 +185,6 @@ public class CodeViewer extends JPanel {
         frame.setSize(400, 400);
     }
 
-    /**
-     * Handles the "Send Response" button action.
-     */
     private void handleSendResponse() {
         System.out.println("Send Response selected");
 

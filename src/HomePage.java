@@ -28,7 +28,6 @@ public class HomePage extends JPanel {
 
         setLayout(null);
 
-
         JLabel titleLabel = new JLabel("Question-Client");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 18));
         titleLabel.setBounds(130, 20, 200, 30);
@@ -38,73 +37,6 @@ public class HomePage extends JPanel {
         teacherButton.setFont(new Font("Georgia",Font.BOLD, 15));
         teacherButton.setBounds(140, 70, 120, 30);
         add(teacherButton);
-
-//        teacherButton.addActionListener(new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                if (dbManager.checkTeacherExists(userName)) {
-//                    System.out.println("Teacher Exists");
-//
-//                    TeacherHome teacherHome = new TeacherHome(frame);
-//
-//                    frame.getContentPane().removeAll();
-//                    frame.revalidate();
-//                    frame.repaint();
-//                    frame.setSize(400, 325);
-//                    frame.add(teacherHome);
-//                    frame.setVisible(true);
-//                } else {
-//                    JPanel panel = new JPanel();
-//                    panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-//
-//                    Font georgiaFont = new Font("Georgia", Font.BOLD, 14);
-//
-//                    JTextField nameField = new JTextField(20);
-//                    JComboBox<String> titleComboBox = new JComboBox<>(new String[] {"Mr.", "Ms.", "Mrs."});
-//
-//                    JLabel nameLabel = new JLabel("Enter Teacher Name:");
-//                    JLabel titleLabel = new JLabel("Select Title:");
-//
-//                    nameLabel.setFont(georgiaFont);
-//                    nameField.setFont(georgiaFont);
-//                    titleLabel.setFont(georgiaFont);
-//                    titleComboBox.setFont(georgiaFont);
-//
-//                    panel.add(nameLabel);
-//                    panel.add(nameField);
-//                    panel.add(titleLabel);
-//                    panel.add(titleComboBox);
-//
-//
-//                    int option = JOptionPane.showConfirmDialog(null, panel, "Add New Teacher", JOptionPane.OK_CANCEL_OPTION);
-//
-//                    if (option == JOptionPane.OK_OPTION) {
-//                        String name = nameField.getText();
-//                        String title = (String) titleComboBox.getSelectedItem();
-//                        fullName = title + " " + name;
-//
-//                        dbManager.addToTeachers(fullName, userName, "Default", 60);
-//                        JOptionPane.showMessageDialog(null, "You have been added as a teacher " + fullName);
-//
-//                        for (int i = 1; i <= 7; i++) {
-//                            String tableCreation1 = name + "_" + i + "_Main";  // Dynamically create the table name
-//                            String tableCreation2 = name + "_" + i + "_Students";  // Dynamically create the table name
-//                            createTableMain(tableCreation1); // Call the method to create the table
-//                            createTableStudents(tableCreation2);
-//                        }
-//
-//                        TeacherHome teacherHome = new TeacherHome(frame);
-//
-//                        frame.getContentPane().removeAll();  // Remove all components from the frame
-//                        frame.revalidate();  // Revalidate the frame layout
-//                        frame.repaint();  // Repaint the frame
-//                        frame.setSize(400, 325);
-//                        frame.add(teacherHome);
-//                        frame.setVisible(true);
-//                    }
-//                }
-//            }
-//        });
 
         teacherButton.addActionListener(new ActionListener() {
             @Override
@@ -149,36 +81,34 @@ public class HomePage extends JPanel {
                         String title = (String) titleComboBox.getSelectedItem();
                         fullName = title + " " + name;
 
-                        // Validate the name input
                         if (!isValidName(name) || isReservedKeyword(name)) {
                             JOptionPane.showMessageDialog(null, "Name does not follow Naming Conventions. Please try again.", "Invalid Name", JOptionPane.ERROR_MESSAGE);
-                            return;  // Prevent further execution
+                            return;
                         }
 
                         String normalizedName = normalizeFullName(fullName);
                         if (dbManager.checkTeacherExistsByName(normalizedName)) {
                             JOptionPane.showMessageDialog(null, "A teacher with the name " + toPascalCase(name) + " already exists.", "Teacher Exists", JOptionPane.ERROR_MESSAGE);
-                            return;  // Prevent further execution
+                            return;
                         }
-
 
                         dbManager.addToTeachers(fullName, userName, "Default", 60);
                         JOptionPane.showMessageDialog(null, "You have been added as a teacher " + fullName);
 
                         for (int i = 1; i <= 7; i++) {
-                            String tableCreation1 = name + "_" + i + "_Main";  // Dynamically create the table name
-                            String tableCreation2 = name + "_" + i + "_Students";  // Dynamically create the table name
-                            String tableCreation3 = name + "_" + i + "_Questions"; //Dynamically create the table name
-                            createTableMain(tableCreation1); // Call the method to create the table
+                            String tableCreation1 = name + "_" + i + "_Main";
+                            String tableCreation2 = name + "_" + i + "_Students";
+                            String tableCreation3 = name + "_" + i + "_Questions";
+                            createTableMain(tableCreation1);
                             createTableStudents(tableCreation2);
                             createTableQuestions(tableCreation3);
                         }
 
                         TeacherHome teacherHome = new TeacherHome(frame, userName);
 
-                        frame.getContentPane().removeAll();  // Remove all components from the frame
-                        frame.revalidate();  // Revalidate the frame layout
-                        frame.repaint();  // Repaint the frame
+                        frame.getContentPane().removeAll();
+                        frame.revalidate();
+                        frame.repaint();
                         frame.setSize(400, 325);
                         frame.add(teacherHome);
                         frame.setVisible(true);
@@ -187,16 +117,14 @@ public class HomePage extends JPanel {
             }
         });
 
-        // Cursive "and" label
         JLabel andLabel = new JLabel("and");
         andLabel.setFont(new Font("Serif", Font.ITALIC, 16));
-        andLabel.setBounds(185, 105, 40, 20); // x, y, width, height
+        andLabel.setBounds(185, 105, 40, 20);
         add(andLabel);
 
-        // "Student" button
         JButton studentButton = new JButton("Student");
         studentButton.setFont(new Font("Georgia",Font.BOLD, 15));
-        studentButton.setBounds(140, 130, 120, 30); // x, y, width, height
+        studentButton.setBounds(140, 130, 120, 30);
         add(studentButton);
 
         studentButton.addActionListener(new ActionListener() {
@@ -209,11 +137,11 @@ public class HomePage extends JPanel {
                     throw new RuntimeException(ex);
                 }
                 frame.getContentPane().removeAll();
-                    frame.revalidate();
-                    frame.repaint();
-                    frame.setSize(400, 300);
-                    frame.add(studentHome);
-                    frame.setVisible(true);
+                frame.revalidate();
+                frame.repaint();
+                frame.setSize(400, 300);
+                frame.add(studentHome);
+                frame.setVisible(true);
             }
         });
     }
@@ -223,25 +151,21 @@ public class HomePage extends JPanel {
         Statement statement = null;
 
         try {
-            // Load the JDBC driver
+
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Connect to your database (replace with your own details)
             connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
 
-            // Ensure the database exists
             statement = connection.createStatement();
             String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient1'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
-            // Create SQL query to create the table
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + name + " (" +
                     "ClassName VARCHAR(100), " +
-                    "StartTime TIME NULL, " + // Explicitly allowing NULL
-                    "EndTime TIME NULL" +    // Explicitly allowing NULL
+                    "StartTime TIME NULL, " +
+                    "EndTime TIME NULL" +
                     ")";
 
-            // Execute the SQL query to create the table
             statement.executeUpdate(createTableSQL);
             System.out.println("Table " + name + " created successfully.");
 
@@ -249,7 +173,7 @@ public class HomePage extends JPanel {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
-            // Close resources
+
             try {
                 if (statement != null) {
                     statement.close();
@@ -268,18 +192,15 @@ public class HomePage extends JPanel {
         Statement statement = null;
 
         try {
-            // Load the JDBC driver
+
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Connect to your database (replace with your own details)
             connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
 
-            // Ensure the database exists
             statement = connection.createStatement();
             String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient1'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
-            // Create SQL query to create the table
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + name + " (" +
                     "StudentID VARCHAR(100), " +
                     "FirstName VARCHAR(100), " +
@@ -287,7 +208,6 @@ public class HomePage extends JPanel {
                     "Nickname VARCHAR(100)" +
                     ")";
 
-            // Execute the SQL query to create the table
             statement.executeUpdate(createTableSQL);
             System.out.println("Table " + name + " created successfully.");
 
@@ -295,7 +215,7 @@ public class HomePage extends JPanel {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
-            // Close resources
+
             try {
                 if (statement != null) {
                     statement.close();
@@ -314,30 +234,26 @@ public class HomePage extends JPanel {
         Statement statement = null;
 
         try {
-            // Load the JDBC driver
+
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            // Connect to your database (replace with your own details)
             connection = DriverManager.getConnection("jdbc:mysql://192.168.1.14/qclient1", "root", "password");
 
-            // Ensure the database exists
             statement = connection.createStatement();
             String checkDatabaseSQL = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'qclient1'";
             ResultSet rs = statement.executeQuery(checkDatabaseSQL);
 
-            // Create SQL query to create the table
             String createTableSQL = "CREATE TABLE IF NOT EXISTS " + tableCreation3 + " (" +
                     "StudentID VARCHAR(100), " +
                     "QuestionSummary LONGTEXT, " +
-                    "TimeStamp TIME, " +  // Corrected comma
-                    "IsQuestionActive BOOLEAN, " +  // Corrected column definition and removed trailing comma
+                    "TimeStamp TIME, " +
+                    "IsQuestionActive BOOLEAN, " +
                     "Response LONGTEXT," +
                     "FileName VARCHAR(200)," +
                     "AttachedCodeFile LONGBLOB," +
                     "ConsoleOutput LONGTEXT" +
                     ")";
 
-            // Execute the SQL query to create the table
             statement.executeUpdate(createTableSQL);
             System.out.println("Table " + tableCreation3 + " created successfully.");
 
@@ -345,7 +261,7 @@ public class HomePage extends JPanel {
             ex.printStackTrace();
             JOptionPane.showMessageDialog(frame, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         } finally {
-            // Close resources
+
             try {
                 if (statement != null) {
                     statement.close();
@@ -359,17 +275,15 @@ public class HomePage extends JPanel {
         }
     }
 
-    // Regular expression for valid names (no spaces, special characters, numbers)
     private boolean isValidName(String name) {
-        String regex = "^[a-zA-Z_]+$";  // Only letters and underscores are allowed
+        String regex = "^[a-zA-Z_]+$";
         return name.matches(regex);
     }
 
-    // Method to check if the name is a reserved SQL keyword
     private boolean isReservedKeyword(String name) {
         String[] reservedKeywords = {
                 "SELECT", "INSERT", "UPDATE", "DELETE", "DROP", "TABLE", "WHERE", "FROM", "JOIN", "AND", "OR", "GROUP", "ORDER", "BY", "HAVING"
-                // Add more reserved SQL keywords if needed
+
         };
         for (String keyword : reservedKeywords) {
             if (name.equalsIgnoreCase(keyword)) {
@@ -379,42 +293,35 @@ public class HomePage extends JPanel {
         return false;
     }
 
-
-
     public String getFullName(){
         return fullName;
     }
 
     public String normalizeFullName(String fullName) {
-        // Split the fullName into title and name parts
-        String[] nameParts = fullName.split(" ", 2);  // Split into title and the rest of the name
+
+        String[] nameParts = fullName.split(" ", 2);
 
         if (nameParts.length < 2) {
-            return fullName.toLowerCase();  // If no space is found, just return the fullName in lowercase
+            return fullName.toLowerCase();
         }
 
-        // Get the title and name
-        String title = nameParts[0].toLowerCase();  // Convert title to lowercase (keep the period)
-        String name = nameParts[1].toLowerCase();  // Convert the name part to lowercase
+        String title = nameParts[0].toLowerCase();
+        String name = nameParts[1].toLowerCase();
 
-        // Return the normalized full name (e.g., "Mr. Tully" becomes "mr.tully")
         System.out.println("Test Name: " + title + name);
         return name;
     }
 
     public String toPascalCase(String input) {
-        // Check if the input is not null or empty
+
         if (input == null || input.isEmpty()) {
             return input;
         }
 
-        // Capitalize the first letter and make the rest lowercase
         String result = input.substring(0, 1).toUpperCase() + input.substring(1).toLowerCase();
 
         return result;
     }
-
-
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {

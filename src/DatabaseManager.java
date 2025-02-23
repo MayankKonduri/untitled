@@ -13,22 +13,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
-    // JDBC URL, username, and password for the local database
+
     private static final String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1";
-    private static final String DATABASE_USER = "root"; // Replace with your MySQL username
-    private static final String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+    private static final String DATABASE_USER = "root";
+    private static final String DATABASE_PASSWORD = "password";
     private String userName;
 
-    // Connection object
     private Connection connection;
 
-    // Constructor
     public DatabaseManager(String userName) {
 
         this.userName = userName;
 
         try {
-            // Establish connection to the database
+
             connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
             System.out.println("Database connected successfully!");
         } catch (SQLException e) {
@@ -46,8 +44,6 @@ public class DatabaseManager {
             return false;
         }
     }
-
-    //---------------  Teachers ---------------------------------------//
 
     public void addToTeachers(String teacherName, String teacherID, String sound, int waitTime) {
         String query = "INSERT INTO Teacher (teacher_name, teacher_id, sound, wait_time) VALUES (?, ?, ?, ?)";
@@ -139,7 +135,6 @@ public class DatabaseManager {
         }
     }
 
-    // Method to check if a teacher exists based on teacher_id
     public boolean checkTeacherExists(String teacherID) {
         String query = "SELECT COUNT(*) FROM Teacher WHERE teacher_id = ?";
 
@@ -148,9 +143,9 @@ public class DatabaseManager {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next() && rs.getInt(1) > 0) {
-                return true;  // Teacher exists
+                return true;
             } else {
-                return false;  // Teacher does not exist
+                return false;
             }
         } catch (SQLException e) {
             System.err.println("Error checking teacher existence.");
@@ -160,29 +155,25 @@ public class DatabaseManager {
     }
 
     public boolean checkTeacherExistsByName(String teacherName) {
-        // The input teacherName is already normalized, so we directly use it
-        String normalizedTeacherName = teacherName.toLowerCase();  // Ensure it is lowercase
 
-        // SQL query to retrieve teacher_name from the database
+        String normalizedTeacherName = teacherName.toLowerCase();
+
         String query = "SELECT teacher_name FROM Teacher";
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             ResultSet rs = stmt.executeQuery();
 
-            // Iterate through the result set to check if there's a match
             while (rs.next()) {
-                String dbTeacherName = rs.getString("teacher_name");  // Original name from the database
+                String dbTeacherName = rs.getString("teacher_name");
 
-                // Normalize the database teacher name by removing the period from the title and converting to lowercase
                 String normalizedDbTeacherName = normalizeFullName(dbTeacherName);
 
-                // Compare the normalized teacher name from the input with the normalized teacher name from the database
                 if (normalizedTeacherName.equals(normalizedDbTeacherName)) {
-                    return true;  // Teacher exists
+                    return true;
                 }
             }
 
-            return false;  // Teacher does not exist
+            return false;
         } catch (SQLException e) {
             System.err.println("Error checking teacher existence by name.");
             e.printStackTrace();
@@ -190,42 +181,36 @@ public class DatabaseManager {
         }
     }
 
-    // Helper method to normalize the teacher name from the database
     private String normalizeFullName(String fullName) {
-        // Split the fullName into title and name parts
-        String[] nameParts = fullName.split(" ", 2);  // Split into title and the rest of the name
+
+        String[] nameParts = fullName.split(" ", 2);
 
         if (nameParts.length < 2) {
-            return fullName.toLowerCase();  // If no space is found, just return the fullName in lowercase
+            return fullName.toLowerCase();
         }
 
-        // Get the title and name
-        String title = nameParts[0].toLowerCase().replace(".", "");  // Convert title to lowercase and remove period
-        String name = nameParts[1].toLowerCase();  // Convert the name part to lowercase
+        String title = nameParts[0].toLowerCase().replace(".", "");
+        String name = nameParts[1].toLowerCase();
 
-        // Return the normalized full name (e.g., "Mr. Tully" becomes "mr.tully")
         return name;
     }
 
-
-
-
     public String[] getTeacher(String teacherID) {
         String query = "SELECT * FROM Teacher WHERE teacher_id = ?";
-        String[] teacherDetails = new String[4];  // Array to store teacher details
+        String[] teacherDetails = new String[4];
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, teacherID);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // Populate the array with the teacher's details
-                teacherDetails[0] = rs.getString("teacher_id");    // teacher_id
-                teacherDetails[1] = rs.getString("teacher_name");  // teacher_name
-                teacherDetails[2] = rs.getString("sound");        // sound
-                teacherDetails[3] = String.valueOf(rs.getInt("wait_time"));  // wait_time
+
+                teacherDetails[0] = rs.getString("teacher_id");
+                teacherDetails[1] = rs.getString("teacher_name");
+                teacherDetails[2] = rs.getString("sound");
+                teacherDetails[3] = String.valueOf(rs.getInt("wait_time"));
             } else {
-                // If no teacher is found, return a message in the array
+
                 teacherDetails = new String[] {"No teacher found with ID: " + teacherID};
             }
         } catch (SQLException e) {
@@ -236,10 +221,6 @@ public class DatabaseManager {
 
         return teacherDetails;
     }
-
-    //---------------  Teachers ---------------------------------------//
-
-    //---------------  Students ---------------------------------------//
 
     public void addToStudents(String studentID) {
         String query = "INSERT INTO Student (student_id) VALUES (?)";
@@ -272,7 +253,6 @@ public class DatabaseManager {
         }
     }
 
-    // Method to check if a student exists based on student_id
     public boolean checkStudentExists(String studentID) {
         String query = "SELECT COUNT(*) FROM Student WHERE student_id = ?";
 
@@ -281,9 +261,9 @@ public class DatabaseManager {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next() && rs.getInt(1) > 0) {
-                return true;  // Student exists
+                return true;
             } else {
-                return false;  // Student does not exist
+                return false;
             }
         } catch (SQLException e) {
             System.err.println("Error checking student existence.");
@@ -294,17 +274,17 @@ public class DatabaseManager {
 
     public String[] getStudent(String studentID) {
         String query = "SELECT * FROM Student WHERE student_id = ?";
-        String[] studentDetails = new String[1];  // Array to store student details
+        String[] studentDetails = new String[1];
 
         try (PreparedStatement stmt = connection.prepareStatement(query)) {
             stmt.setString(1, studentID);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                // Populate the array with the student's details
-                studentDetails[0] = rs.getString("student_id");  // student_id
+
+                studentDetails[0] = rs.getString("student_id");
             } else {
-                // If no student is found, return a message in the array
+
                 studentDetails = new String[] {"No student found with ID: " + studentID};
             }
         } catch (SQLException e) {
@@ -316,27 +296,20 @@ public class DatabaseManager {
         return studentDetails;
     }
 
-
-
-    //---------------  Students ---------------------------------------//
-    //----
-
     public void updateTeacherMain(String tableName, String className, String startTime, String endTime) {
         String deleteSQL = "DELETE FROM " + tableName;
         String insertSQL = "INSERT INTO " + tableName + " (ClassName, StartTime, EndTime) VALUES (?, ?, ?)";
 
         try {
-            // Start by clearing the table
+
             try (PreparedStatement deleteStatement = connection.prepareStatement(deleteSQL)) {
                 deleteStatement.executeUpdate();
                 System.out.println("All rows cleared from " + tableName);
             }
 
-            // Then insert new data
             try (PreparedStatement insertStatement = connection.prepareStatement(insertSQL)) {
                 insertStatement.setString(1, className);
 
-                // Check if startTime and endTime are empty or null and set them as NULL in the database
                 if (startTime == null || startTime.isEmpty()) {
                     insertStatement.setNull(2, java.sql.Types.TIME);
                 } else {
@@ -360,7 +333,7 @@ public class DatabaseManager {
     }
     public String[] getTeacherMainData(String tableName) {
         String selectSQL = "SELECT ClassName, StartTime, EndTime FROM " + tableName;
-        String[] data = new String[3]; // ClassName, StartTime, EndTime
+        String[] data = new String[3];
 
         try (PreparedStatement statement = connection.prepareStatement(selectSQL);
              ResultSet resultSet = statement.executeQuery()) {
@@ -378,96 +351,86 @@ public class DatabaseManager {
         return data;
     }
     public void updateTeacherStudents(String tableName, String studentID, String firstN, String lastN, String nickN) throws SQLException {
-        // Ensure table name is safe from SQL injection by validating input
+
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
 
-        // Build the SQL query with placeholders for all fields
         String insertSQL = "INSERT INTO " + tableName + " (StudentID, FirstName, LastName, Nickname) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(insertSQL)) {
-            // Set the values for each placeholder
+
             preparedStatement.setString(1, studentID);
             preparedStatement.setString(2, firstN);
             preparedStatement.setString(3, lastN);
             preparedStatement.setString(4, nickN);
 
-            // Execute the statement
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) inserted into table " + tableName);
         } catch (SQLException e) {
             e.printStackTrace();
-            throw e;  // Re-throw the exception if you want to propagate it
+            throw e;
         }
     }
 
     public boolean checkValueInTable(String tableName, String valueToCheck) throws SQLException {
-        // Ensure table name is safe from SQL injection by validating input
+
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
 
-        // Build the SQL query with a placeholder for the value to check
-        String checkSQL = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?"; // Modify the column name as needed
+        String checkSQL = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(checkSQL)) {
-            // Set the value for the placeholder
+
             preparedStatement.setString(1, valueToCheck);
 
-            // Execute the query
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 if (resultSet.next()) {
                     int count = resultSet.getInt(1);
                     if (count > 0) {
                         System.out.println("Value '" + valueToCheck + "' found in table " + tableName);
-                        return true; // Value exists in the table
+                        return true;
                     } else {
                         System.out.println("Value '" + valueToCheck + "' not found in table " + tableName);
-                        return false; // Value does not exist in the table
+                        return false;
                     }
                 }
             }
         }
-        return false; // Return false if an error occurs or no rows are returned
+        return false;
     }
 
-
     public void removeTeacherStudents(String tableName, String studentID) throws SQLException {
-        // Ensure table name is safe from SQL injection by validating input
+
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
 
-        // Build the SQL query with a placeholder for StudentID
         String deleteSQL = "DELETE FROM " + tableName + " WHERE StudentID = ?";
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(deleteSQL)) {
-            // Set the value for the placeholder
+
             preparedStatement.setString(1, studentID);
 
-            // Execute the statement
             int rowsAffected = preparedStatement.executeUpdate();
             System.out.println(rowsAffected + " row(s) deleted from table " + tableName);
         }
     }
 
     public ArrayList<String[]> checkNameInStudentsTables(String nameToCheck) throws SQLException {
-        // Create an ArrayList to store the results
+
         ArrayList<String[]> resultList = new ArrayList<>();
 
-        // Step 1: Get tables ending with '_students'
         String fetchTablesQuery = "SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%_students';";
 
         try (Statement tableStmt = connection.createStatement();
              ResultSet tableResultSet = tableStmt.executeQuery(fetchTablesQuery)) {
 
-            // Step 2: Iterate over each table
             while (tableResultSet.next()) {
                 String tableName = tableResultSet.getString("table_name");
                 System.out.println("Found _students table: " + tableName);
 
-                // Step 2a: Check if 'StudentID' exists in this table and search for the name in 'StudentID'
                 String checkNameQuery = "SELECT COUNT(*) FROM " + tableName + " WHERE StudentID = ?";
                 try (PreparedStatement nameStmt = connection.prepareStatement(checkNameQuery)) {
                     nameStmt.setString(1, nameToCheck);
@@ -475,12 +438,10 @@ public class DatabaseManager {
                         if (nameResultSet.next() && nameResultSet.getInt(1) > 0) {
                             System.out.println("Found student '" + nameToCheck + "' in table: " + tableName);
 
-                            // Step 3: After finding the student, get the corresponding 'main' table
-                            String baseName = tableName.split("_students")[0]; // Extract the base name (e.g., 'tully_1')
+                            String baseName = tableName.split("_students")[0];
                             String mainTableName = tableName.replace("_students", "_main");
                             System.out.println("Main table corresponding to _students table: " + mainTableName);
 
-                            // Step 4: Query the corresponding main table for ClassName, StartTime, and EndTime
                             String getClassDetailsQuery = "SELECT ClassName, StartTime, EndTime FROM " + mainTableName;
                             try (Statement mainTableStmt = connection.createStatement();
                                  ResultSet classResultSet = mainTableStmt.executeQuery(getClassDetailsQuery)) {
@@ -490,8 +451,7 @@ public class DatabaseManager {
                                     String startTime = classResultSet.getString("StartTime");
                                     String endTime = classResultSet.getString("EndTime");
 
-                                    // Step 5: Search for the teacher in the 'Teachers' table
-                                    String teacherLastName = baseName.split("_")[0]; // Extract base name without index
+                                    String teacherLastName = baseName.split("_")[0];
                                     String checkTeacherQuery = "SELECT wait_time FROM Teacher WHERE teacher_name LIKE ?";
                                     try (PreparedStatement teacherStmt = connection.prepareStatement(checkTeacherQuery)) {
                                         teacherStmt.setString(1, "% " + teacherLastName);
@@ -504,7 +464,6 @@ public class DatabaseManager {
                                                 System.out.println("Teacher with last name '" + teacherLastName + "' not found.");
                                             }
 
-                                            // Store the results in the ArrayList
                                             resultList.add(new String[]{
                                                     mainTableName,
                                                     className,
@@ -515,7 +474,7 @@ public class DatabaseManager {
                                         }
                                     }
                                 } else {
-                                    // If no class details are found in the main table
+
                                     System.out.println("No class details found in main table for " + mainTableName);
                                 }
                             }
@@ -524,27 +483,25 @@ public class DatabaseManager {
                 }
             }
         }
-        // Return the result list containing all found occurrences
+
         return resultList;
     }
 
-
     public String[][] getTeacherStudents(String tableName) throws SQLException {
-        // Ensure table name is safe from SQL injection by validating input
+
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
 
-        // Build the SQL query to select all columns (StudentID, FirstName, LastName, Nickname)
         String selectSQL = "SELECT StudentID, FirstName, LastName, Nickname FROM " + tableName;
 
         List<String[]> students = new ArrayList<>();
 
         try (PreparedStatement preparedStatement = connection.prepareStatement(selectSQL)) {
-            // Execute the query
+
             try (ResultSet resultSet = preparedStatement.executeQuery()) {
                 while (resultSet.next()) {
-                    // Retrieve the values for each column and add them to the list as an array
+
                     String studentId = resultSet.getString("StudentID");
                     String firstName = resultSet.getString("FirstName");
                     String lastName = resultSet.getString("LastName");
@@ -554,18 +511,16 @@ public class DatabaseManager {
             }
         }
 
-        // Convert the list to a 2D array and return
         return students.toArray(new String[0][0]);
     }
 
-
     public void deleteTeacherAndAssociatedTables(String teacherName) {
         String deleteTeacherQuery = "DELETE FROM Teacher WHERE teacher_name = ?";
-        // Updated regex to handle "Mr. ", "Mrs. ", or "Ms. " with space after the period
+
         String baseName = teacherName.replaceAll("^(Mr\\.|Mrs\\.|Ms\\.)\\s*", "").trim();
 
         try (PreparedStatement stmt = connection.prepareStatement(deleteTeacherQuery)) {
-            // Delete the teacher from the Teacher table
+
             stmt.setString(1, teacherName);
             int rowsAffected = stmt.executeUpdate();
 
@@ -576,24 +531,21 @@ public class DatabaseManager {
                 return;
             }
 
-            // Delete all tables associated with the teacher
             for (int grade = 1; grade <= 7; grade++) {
                 String mainTable = baseName + "_" + grade + "_main";
                 String studentsTable = baseName + "_" + grade + "_students";
                 String questionsTable = baseName + "_" + grade + "_questions";
 
                 try (Statement tableDeletionStmt = connection.createStatement()) {
-                    // Drop the main table
+
                     String dropMainTableQuery = "DROP TABLE IF EXISTS " + mainTable;
                     tableDeletionStmt.executeUpdate(dropMainTableQuery);
                     System.out.println("Deleted table: " + mainTable);
 
-                    // Drop the students table
                     String dropStudentsTableQuery = "DROP TABLE IF EXISTS " + studentsTable;
                     tableDeletionStmt.executeUpdate(dropStudentsTableQuery);
                     System.out.println("Deleted table: " + studentsTable);
 
-                    // Drop the students table
                     String dropQuestionsTableQuery = "DROP TABLE IF EXISTS " + questionsTable;
                     tableDeletionStmt.executeUpdate(dropQuestionsTableQuery);
                     System.out.println("Deleted table: " + questionsTable);
@@ -632,12 +584,12 @@ public class DatabaseManager {
             preparedStatement.setString(2, questionSummary);
             preparedStatement.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
             preparedStatement.setBoolean(4, true);
-            preparedStatement.setString(5, null); // Response column (can be updated later)
+            preparedStatement.setString(5, null);
 
             if (fileBytes != null) {
-                preparedStatement.setBytes(6, fileBytes); // Store file as bytes in LONGBLOB
+                preparedStatement.setBytes(6, fileBytes);
             } else {
-                preparedStatement.setNull(6, java.sql.Types.BLOB); // Set NULL if no file uploaded
+                preparedStatement.setNull(6, java.sql.Types.BLOB);
             }
 
             preparedStatement.setString(7, consoleErrorOutput);
@@ -672,38 +624,33 @@ public class DatabaseManager {
         ResultSet resultSet = null;
 
         try {
-            // SQL query to retrieve the QuestionSummary for the given studentID and where IsQuestionActive is 1
+
             String selectSQL = "SELECT QuestionSummary FROM " + questionTableName + " WHERE StudentID = ? AND IsQuestionActive = 1";
 
-            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1"; // Your DB URL
-            String DATABASE_USER = "root"; // Replace with your MySQL username
-            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1";
+            String DATABASE_USER = "root";
+            String DATABASE_PASSWORD = "password";
 
-            // Establish connection to the database
             connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
 
-            // Create a prepared statement to prevent SQL injection
             preparedStatement = connection.prepareStatement(selectSQL);
 
-            // Set the parameter for the prepared statement (studentID)
             preparedStatement.setString(1, studentID);
 
-            // Execute the query and get the result set
             resultSet = preparedStatement.executeQuery();
 
-            // If there's a result, return the QuestionSummary, otherwise return an empty string
             if (resultSet.next()) {
                 System.out.println("Find Successful");
                 return resultSet.getString("QuestionSummary");
             } else {
-                return "";  // No active question for the given studentID
+                return "";
             }
 
         } catch (SQLException e) {
             e.printStackTrace();
-            return "";  // Return empty string in case of any error
+            return "";
         } finally {
-            // Close resources to prevent memory leaks
+
             try {
                 if (resultSet != null) {
                     resultSet.close();
@@ -712,7 +659,7 @@ public class DatabaseManager {
                     preparedStatement.close();
                 }
                 if (connection != null) {
-                    connection.close(); // Ensure the connection is also closed
+                    connection.close();
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -721,7 +668,7 @@ public class DatabaseManager {
     }
 
     public static void deactivateQuestion(String tableName, String studentID, String questionSummary) {
-        // Ensure table name is safe from SQL injection by validating input
+
         if (!tableName.matches("[a-zA-Z0-9_]+")) {
             throw new IllegalArgumentException("Invalid table name.");
         }
@@ -730,28 +677,23 @@ public class DatabaseManager {
         Connection connection = null;
 
         try {
-            // SQL query to update IsQuestionActive to false (0) for the specified studentID and questionSummary
+
             String updateSQL = "UPDATE " + tableName + " SET IsQuestionActive = ? WHERE StudentID = ? AND QuestionSummary = ?";
 
-            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1"; // Your DB URL
-            String DATABASE_USER = "root"; // Replace with your MySQL username
-            String DATABASE_PASSWORD = "password"; // Replace with your MySQL password
+            String DATABASE_URL = "jdbc:mysql://192.168.1.14/qclient1";
+            String DATABASE_USER = "root";
+            String DATABASE_PASSWORD = "password";
 
-            // Establish connection to the database
             connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
 
-            // Create a prepared statement to prevent SQL injection
             preparedStatement = connection.prepareStatement(updateSQL);
 
-            // Set parameters for the PreparedStatement
-            preparedStatement.setBoolean(1, false); // Set IsQuestionActive to false (0)
-            preparedStatement.setString(2, studentID); // Set StudentID
-            preparedStatement.setString(3, questionSummary); // Set QuestionSummary
+            preparedStatement.setBoolean(1, false);
+            preparedStatement.setString(2, studentID);
+            preparedStatement.setString(3, questionSummary);
 
-            // Execute the update statement
             int rowsAffected = preparedStatement.executeUpdate();
 
-            // Check if the update was successful
             if (rowsAffected > 0) {
                 System.out.println("Question successfully deactivated.");
             } else {
@@ -759,16 +701,16 @@ public class DatabaseManager {
             }
 
         } catch (SQLException e) {
-            // Handle SQL exception
+
             e.printStackTrace();
         } finally {
-            // Close resources to prevent memory leaks
+
             try {
                 if (preparedStatement != null) {
                     preparedStatement.close();
                 }
                 if (connection != null) {
-                    connection.close(); // Ensure the connection is also closed
+                    connection.close();
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -776,131 +718,112 @@ public class DatabaseManager {
         }
     }
 
-        private boolean doesTableExist(String tableName) {
-            String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?";
-            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
-                try (PreparedStatement statement = connection.prepareStatement(query)) {
-                    statement.setString(1, tableName);
-                    try (ResultSet resultSet = statement.executeQuery()) {
-                        if (resultSet.next()) {
-                            return resultSet.getInt(1) > 0; // If count > 0, table exists
-                        }
+    private boolean doesTableExist(String tableName) {
+        String query = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?";
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, tableName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1) > 0;
                     }
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
-            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
+    }
 
-        // Method to check if the column exists in the specified table
-        private boolean doesColumnExist(String tableName, String columnName) {
-            String query = "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?";
-            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
-                try (PreparedStatement statement = connection.prepareStatement(query)) {
-                    statement.setString(1, tableName);
-                    statement.setString(2, columnName);
-                    try (ResultSet resultSet = statement.executeQuery()) {
-                        if (resultSet.next()) {
-                            return resultSet.getInt(1) > 0; // If count > 0, column exists
-                        }
+    private boolean doesColumnExist(String tableName, String columnName) {
+        String query = "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?";
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
+            try (PreparedStatement statement = connection.prepareStatement(query)) {
+                statement.setString(1, tableName);
+                statement.setString(2, columnName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    if (resultSet.next()) {
+                        return resultSet.getInt(1) > 0;
                     }
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
             }
-            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+        return false;
+    }
 
     public void insertOrUpdateWaitTime(String tableString, String columnName, int remainingTime) {
 
-        tableString = tableString.toLowerCase(); // Ensure table name is lowercase
-        //System.out.println("Called: " + tableString + " " + columnName + " " + remainingTime);
+        tableString = tableString.toLowerCase();
 
-        // Check if the table exists
         if (!doesTableExist(tableString)) {
-            //System.out.println("Table not found: " + tableString);
-            return; // Exit the method if the table doesn't exist
+
+            return;
         } else {
-            //System.out.println("Table found: " + tableString);
+
         }
 
-        // Check if the column exists
         if (!doesColumnExist(tableString, columnName)) {
-            //System.out.println("Column not found: " + columnName);
-            return; // Exit the method if the column doesn't exist
+
+            return;
         } else {
-            //System.out.println("Column found: " + columnName);
+
         }
 
-        // SQL query to delete all rows in the table
         String deleteQuery = "DELETE FROM " + tableString;
 
-        // Debugging: print the SQL query to check for correctness
-        //System.out.println("Executing query: " + deleteQuery);
-
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
-            // Prepare the statement to delete all rows
+
             try (PreparedStatement deleteStatement = connection.prepareStatement(deleteQuery)) {
-                // Execute the delete
+
                 int rowsDeleted = deleteStatement.executeUpdate();
 
-                // Debugging: check if the delete was successful
                 if (rowsDeleted > 0) {
-                    //System.out.println("All rows deleted from table: " + tableString);
+
                 } else {
-                    //System.out.println("No rows to delete. Table might already be empty.");
+
                 }
             }
 
-            // SQL query to insert the wait time
             String insertQuery = "INSERT INTO " + tableString + " (" + columnName + ") VALUES (?)";
 
-            // Debugging: print the SQL query to check for correctness
-            //System.out.println("Executing query: " + insertQuery);
-
-            // Prepare the statement to insert the wait time
             try (PreparedStatement insertStatement = connection.prepareStatement(insertQuery)) {
-                // Set the value of remainingTime in the prepared statement
+
                 insertStatement.setInt(1, remainingTime);
 
-                // Execute the insert
                 int rowsInserted = insertStatement.executeUpdate();
 
-                // Debugging: check if the insert was successful
                 if (rowsInserted > 0) {
-                    //System.out.println("Wait time inserted successfully in table: " + tableString + ", column: " + columnName);
+
                 } else {
-                    //System.out.println("No rows inserted. Check if the table exists or if the column is correct.");
+
                 }
             }
 
         } catch (SQLException e) {
-            // Print stack trace for debugging
+
             System.err.println("SQL Exception: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-
-
     public int getWaitTimeFromStudent(String tableString, String columnName) {
-        int result = -1;  // Default value if the column doesn't exist or an error occurs
+        int result = -1;
 
-        // Build the dynamic select query
         String selectQuery = "SELECT " + columnName + " FROM " + tableString;
 
         try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD)) {
-            // Prepare the statement for the SELECT query
+
             try (PreparedStatement statement = connection.prepareStatement(selectQuery)) {
-                // Execute the query and get the result set
+
                 try (ResultSet resultSet = statement.executeQuery()) {
-                    // Check if the result set has any rows
+
                     if (resultSet.next()) {
-                        // Retrieve the value from the column (assuming it's an integer)
-                        result = resultSet.getInt(columnName); // Get the value from the specific column
+
+                        result = resultSet.getInt(columnName);
                     } else {
-                        //System.out.println("No data found in table: " + tableString + ", column: " + columnName);
+
                     }
                 }
             }
@@ -908,44 +831,42 @@ public class DatabaseManager {
             e.printStackTrace();
         }
 
-        // Return the value retrieved from the table
         return result;
     }
 
-        public static int getQuestionPosition(String tableName, String studentID) {
-            int position = -1;
-            String query = "SELECT StudentID, QuestionSummary, TimeStamp, IsQuestionActive " +
-                    "FROM " + tableName + " " +
-                    "WHERE IsQuestionActive = 1 " +
-                    "ORDER BY TimeStamp";
+    public static int getQuestionPosition(String tableName, String studentID) {
+        int position = -1;
+        String query = "SELECT StudentID, QuestionSummary, TimeStamp, IsQuestionActive " +
+                "FROM " + tableName + " " +
+                "WHERE IsQuestionActive = 1 " +
+                "ORDER BY TimeStamp";
 
-            try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
-                 Statement stmt = connection.createStatement();
-                 ResultSet rs = stmt.executeQuery(query)) {
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
+             Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
 
-                int rowNumber = 0;
+            int rowNumber = 0;
 
-                // Iterate over the result set and find the position of the given studentID
-                while (rs.next()) {
-                    String currentStudentID = rs.getString("StudentID");
-                    if (currentStudentID.equals(studentID)) {
-                        rowNumber++;
-                        position = rowNumber;
-                        break; // Exit after finding the first match
-                    }
+            while (rs.next()) {
+                String currentStudentID = rs.getString("StudentID");
+                if (currentStudentID.equals(studentID)) {
                     rowNumber++;
+                    position = rowNumber;
+                    break;
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
+                rowNumber++;
             }
-
-            return position;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
+        return position;
+    }
 
     public void removeActiveQuestion(String studentID, String tableName) {
         String query = "UPDATE " + tableName + " SET ConsoleOutput = NULL, AttachedCodeFile = NULL, isQuestionActive = 0 WHERE studentID = ? AND isQuestionActive = 1";
 
-        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD); // Assuming you have a method to get DB connection
+        try (Connection connection = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = connection.prepareStatement(query)) {
 
             pstmt.setString(1, studentID);
@@ -1005,11 +926,9 @@ public class DatabaseManager {
         try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
-            // Set the parameters for the query
-            pstmt.setString(1, s); // Set the Response value
-            pstmt.setString(2, studentID); // Set the studentID for the row to be updated
+            pstmt.setString(1, s);
+            pstmt.setString(2, studentID);
 
-            // Execute the update query
             int rowsUpdated = pstmt.executeUpdate();
 
             if (rowsUpdated > 0) {
@@ -1024,7 +943,7 @@ public class DatabaseManager {
     }
     public Object[] getQuestionDetails(String studentID, String tableName) {
         String query = "SELECT QuestionSummary, FileName, AttachedCodeFile, ConsoleOutput FROM " + tableName + " WHERE studentID = ? AND isQuestionActive = 1";
-        Object[] result = new Object[4]; // To hold [QuestionSummary, FileName, AttachedCodeFile, ConsoleOutput]
+        Object[] result = new Object[4];
 
         try (Connection conn = DriverManager.getConnection(DATABASE_URL, DATABASE_USER, DATABASE_PASSWORD);
              PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -1035,11 +954,11 @@ public class DatabaseManager {
                 if (rs.next()) {
                     result[0] = rs.getString("QuestionSummary");
                     result[1] = rs.getString("FileName");
-                    result[2] = rs.getBytes("AttachedCodeFile"); // Gets the BLOB as byte[]
+                    result[2] = rs.getBytes("AttachedCodeFile");
                     result[3] = rs.getString("ConsoleOutput");
                 } else {
                     System.out.println("No active question found for student ID: " + studentID);
-                    result[0] = result[1] = result[2] = null; // Optional: Or return some default values
+                    result[0] = result[1] = result[2] = null;
                 }
             }
         } catch (SQLException e) {

@@ -4,9 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.Arrays;
-//import javax.mail.*;
-//import javax.mail.internet.*;
-//import java.util.Properties;
 
 public class TeacherHome extends JPanel {
     private JFrame frame;
@@ -19,12 +16,9 @@ public class TeacherHome extends JPanel {
         dbManager = new DatabaseManager(userName);
         setLayout(null);
 
-        // Get teacher details from the database
         String[] temp = dbManager.getTeacher(userName);
         System.out.println(Arrays.toString(temp));
 
-
-        // Home button and panel
         JPanel homePanel = new JPanel();
         homePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 
@@ -53,16 +47,14 @@ public class TeacherHome extends JPanel {
         });
 
         if (temp != null && temp.length > 0) {
-            // Assuming temp[0] is teacher name
-            String teacherName = temp[1]; // Get the teacher's name (temp[1] in this case)
 
-            // Title "Welcome {teacherName}"
+            String teacherName = temp[1];
+
             JLabel titleLabel = new JLabel("Welcome " + teacherName);
             titleLabel.setFont(new Font("Georgia", Font.BOLD, 18));
             titleLabel.setBounds(110, 20, 300, 30);
             add(titleLabel);
 
-            // Question Viewer Button
             JButton questionViewerButton = new JButton("Question Viewer");
             questionViewerButton.setFont(new Font("Georgia", Font.BOLD, 16));
             questionViewerButton.setBounds(50, 70, 300, 40);
@@ -76,11 +68,10 @@ public class TeacherHome extends JPanel {
                     frame.getContentPane().add(questionViewer);
                     frame.revalidate();
                     frame.repaint();
-                    frame.setSize(400, 400);  // Resize the frame to fit the home page
+                    frame.setSize(400, 400);
                 }
             });
 
-            // Courses Button
             JButton coursesButton = new JButton("Courses");
             coursesButton.setFont(new Font("Georgia", Font.BOLD, 16));
             coursesButton.setBounds(50, 120, 300, 40);
@@ -90,48 +81,43 @@ public class TeacherHome extends JPanel {
                 public void actionPerformed(ActionEvent e) {
                     TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
 
-                    frame.getContentPane().removeAll();  // Remove all components from the frame
-                    frame.revalidate();  // Revalidate the frame layout
-                    frame.repaint();  // Repaint the frame
+                    frame.getContentPane().removeAll();
+                    frame.revalidate();
+                    frame.repaint();
                     frame.setSize(400, 325);
                     frame.add(teacherCourses);
                     frame.setVisible(true);
                 }
             });
 
-            // Reports Button
             JButton reportsButton = new JButton("Reports");
             reportsButton.setFont(new Font("Georgia", Font.BOLD, 16));
             reportsButton.setBounds(50, 170, 300, 40);
             add(reportsButton);
 
-            // Settings Button (at the bottom)
             JButton settingsButton = new JButton("Settings");
             settingsButton.setFont(new Font("Georgia", Font.BOLD, 16));
-            settingsButton.setBounds(50, 220, 300, 40); // Adjusted position for the bottom
+            settingsButton.setBounds(50, 220, 300, 40);
             add(settingsButton);
 
             settingsButton.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    // Get the teacher data from the database
+
                     String[] temp1 = dbManager.getTeacher(userName);
                     String pID = temp1[0];
                     String pName = temp1[1];
                     String pSound = temp1[2];
                     int pWaitTime = Integer.parseInt(temp1[3]);
 
-                    // Create a dialog to edit the teacher's information
                     JDialog dialog = new JDialog(frame, "Settings", true);
                     dialog.setLayout(new GridBagLayout());
                     GridBagConstraints gbc = new GridBagConstraints();
                     gbc.insets = new Insets(10, 10, 10, 10);
                     gbc.fill = GridBagConstraints.HORIZONTAL;
 
-                    // Font for all components
                     Font font = new Font("Georgia", Font.PLAIN, 12);
 
-                    // ID field (uneditable)
                     gbc.gridx = 0;
                     gbc.gridy = 0;
                     JLabel idLabel = new JLabel("ID:", JLabel.RIGHT);
@@ -144,7 +130,6 @@ public class TeacherHome extends JPanel {
                     idField.setFont(font);
                     dialog.add(idField, gbc);
 
-                    // Name field (editable)
                     gbc.gridx = 0;
                     gbc.gridy = 1;
                     JLabel nameLabel = new JLabel("Name:", JLabel.RIGHT);
@@ -157,7 +142,6 @@ public class TeacherHome extends JPanel {
                     nameField.setFont(font);
                     dialog.add(nameField, gbc);
 
-                    // Sound dropdown
                     gbc.gridx = 0;
                     gbc.gridy = 2;
                     JLabel soundLabel = new JLabel("Sound:", JLabel.RIGHT);
@@ -170,7 +154,6 @@ public class TeacherHome extends JPanel {
                     soundComboBox.setFont(font);
                     dialog.add(soundComboBox, gbc);
 
-                    // Wait Time slider (0 to 300 seconds)
                     gbc.gridx = 0;
                     gbc.gridy = 3;
                     JLabel waitTimeLabel = new JLabel("Wait Time (seconds):", JLabel.RIGHT);
@@ -183,25 +166,21 @@ public class TeacherHome extends JPanel {
                     waitTimeSlider.setMinorTickSpacing(30);
                     waitTimeSlider.setPaintTicks(true);
                     waitTimeSlider.setPaintLabels(true);
-                    waitTimeSlider.setFont(font); // Applies font to tick labels
+                    waitTimeSlider.setFont(font);
                     dialog.add(waitTimeSlider, gbc);
 
-                    // Create a smaller font for the tick labels
-                    Font smallFont = new Font("Georgia", Font.PLAIN, 8); // Adjust size as needed
-                    waitTimeSlider.setFont(smallFont); // Applies font to the tick labels
+                    Font smallFont = new Font("Georgia", Font.PLAIN, 8);
+                    waitTimeSlider.setFont(smallFont);
 
-                    // Label to display the current wait time
                     gbc.gridy = 4;
                     JLabel currentWaitTimeLabel = new JLabel("Current Wait Time: " + waitTimeSlider.getValue() + " seconds");
                     currentWaitTimeLabel.setFont(font);
 
-                    // Update the label as the slider is adjusted
                     waitTimeSlider.addChangeListener(e1 -> {
                         currentWaitTimeLabel.setText("Current Wait Time: " + waitTimeSlider.getValue() + " seconds");
                     });
                     dialog.add(currentWaitTimeLabel, gbc);
 
-                    // OK button to update teacher's information
                     gbc.gridx = 1;
                     gbc.gridy = 5;
                     JButton okButton = new JButton("OK");
@@ -209,21 +188,18 @@ public class TeacherHome extends JPanel {
                     okButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            // Get updated values
+
                             String newName = nameField.getText();
                             String newSound = (String) soundComboBox.getSelectedItem();
                             int newWaitTime = waitTimeSlider.getValue();
 
-                            // Update the teacher's information
                             dbManager.updateTeacher(pID, newName, newSound, newWaitTime);
 
-                            // Close the dialog
                             dialog.dispose();
                         }
                     });
                     dialog.add(okButton, gbc);
 
-                    // Delete Teacher Account Button
                     gbc.gridy = 6;
                     JButton deleteButton = new JButton("Delete Teacher Account");
                     deleteButton.setFont(new Font("Georgia", Font.BOLD, 12));
@@ -242,8 +218,8 @@ public class TeacherHome extends JPanel {
                             );
 
                             if (confirm == JOptionPane.OK_OPTION) {
-                                // Call the method to delete teacher and associated tables
-                                dbManager.deleteTeacherAndAssociatedTables(pName); // Replace # with the appropriate teacher name
+
+                                dbManager.deleteTeacherAndAssociatedTables(pName);
                                 dialog.dispose();
 
                                 HomePage homePage = null;
@@ -262,8 +238,7 @@ public class TeacherHome extends JPanel {
                     });
                     dialog.add(deleteButton, gbc);
 
-                    // Set dialog size and make it visible
-                    dialog.setSize(500, 450); // Increased height for the delete button
+                    dialog.setSize(500, 450);
                     dialog.setLocationRelativeTo(frame);
                     dialog.setVisible(true);
                 }

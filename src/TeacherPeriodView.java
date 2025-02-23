@@ -47,7 +47,6 @@ public class TeacherPeriodView extends JPanel {
         this.period = String.valueOf(period);
         setLayout(null);
 
-        // Home button and panel
         JPanel homePanel = new JPanel();
         homePanel.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 
@@ -61,22 +60,20 @@ public class TeacherPeriodView extends JPanel {
         homeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Check if the fields and table are empty or not
+
                 boolean isClassNameEmpty = classNameField.getText().isEmpty();
                 boolean isStartTimeEmpty = startTimeField.getText().trim().isEmpty() || startTimeField.getText().equals("  :  ");
                 boolean isEndTimeEmpty = endTimeField.getText().trim().isEmpty() || endTimeField.getText().equals("  :  ");
                 boolean isTableEmpty = tableModel.getRowCount() == 0;
 
-                // Debugging output
                 System.out.println(isClassNameEmpty);
                 System.out.println(isStartTimeEmpty);
                 System.out.println(isEndTimeEmpty);
                 System.out.println(isTableEmpty);
 
-                // Check if all fields are either empty or all are full
                 if ((isClassNameEmpty && isStartTimeEmpty && isEndTimeEmpty && isTableEmpty) ||
                         (!isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty && !isTableEmpty)) {
-                    // If none or all fields are filled, proceed to the new page
+
                     TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
                     frame.getContentPane().removeAll();
                     frame.getContentPane().add(teacherCourses);
@@ -84,9 +81,9 @@ public class TeacherPeriodView extends JPanel {
                     frame.repaint();
                     System.out.println("New page loaded.");
                 } else {
-                    // If some fields are filled but not all of them, do not proceed
+
                     if (!isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty) {
-                        // All three fields have values, proceed to new page
+
                         TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
                         frame.getContentPane().removeAll();
                         frame.getContentPane().add(teacherCourses);
@@ -94,7 +91,7 @@ public class TeacherPeriodView extends JPanel {
                         frame.repaint();
                         System.out.println("New page loaded.");
                     } else if (!isTableEmpty && !isClassNameEmpty && !isStartTimeEmpty && !isEndTimeEmpty) {
-                        // If table has value and all fields are filled, proceed to new page
+
                         TeacherCourses teacherCourses = new TeacherCourses(frame, userName);
                         frame.getContentPane().removeAll();
                         frame.getContentPane().add(teacherCourses);
@@ -102,14 +99,13 @@ public class TeacherPeriodView extends JPanel {
                         frame.repaint();
                         System.out.println("New page loaded.");
                     } else {
-                        // If conditions aren't met (not all fields or table are filled), do nothing
+
                         System.out.println("Cannot proceed to new page. Fields are not valid.");
                     }
                 }
             }
         });
 
-        // Title and input fields
         JLabel titleLabel = new JLabel("Period " + period + " - Class Name:");
         titleLabel.setFont(new Font("Georgia", Font.BOLD, 12));
         titleLabel.setBounds(110, 25, 200, 30);
@@ -138,58 +134,48 @@ public class TeacherPeriodView extends JPanel {
         endTimeField.setBounds(250, 60, 60, 25);
         add(endTimeField);
 
-        // Table setup
-        // Create a table model with 4 columns: StudentID, FirstName, LastName, and Nickname
-        // Create the table model with 2 columns: Student ID and Nickname
-// Create the table model with 2 columns: Student ID and Nickname
         tableModel = new DefaultTableModel(new Object[]{"Student ID", "Nickname"}, 0) {
-            // Override the isCellEditable method to make all cells non-editable
+
             @Override
             public boolean isCellEditable(int row, int column) {
-                return false;  // Return false for every cell to make them non-editable
+                return false;
             }
-        };// Set the model for the studentTable
+        };
         studentTable.setModel(tableModel);
 
-// Set font for the table
         studentTable.setFont(new Font("Georgia", Font.PLAIN, 12));
 
-// Set row height
         studentTable.setRowHeight(20);
 
-// Set the font and appearance of the table header
         studentTable.getTableHeader().setFont(new Font("Georgia", Font.BOLD, 12));
         studentTable.getTableHeader().setBackground(Color.LIGHT_GRAY);
         studentTable.getTableHeader().setForeground(Color.BLACK);
 
-// Center-align both columns: Student ID and Nickname
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
 
-// Apply center alignment to both columns
-        studentTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);  // Student ID column
-        studentTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);  // Nickname column
+        studentTable.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
+        studentTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
-// Add the table to a JScrollPane for scrolling functionality
         JScrollPane tableScrollPane = new JScrollPane(studentTable);
         tableScrollPane.setBounds(55, 100, 300, 125);
         add(tableScrollPane);
 
-        String[] temp = dbManager.getTeacher(userName); // Fetch teacher details
+        String[] temp = dbManager.getTeacher(userName);
         String teacherName = temp[1];
         teacherName = teacherName.replaceAll("^(Mr\\.\\s*|Ms\\.\\s*|Mrs\\.\\s*)", "").trim();
         String studentTableName = teacherName + "_" + period + "_Students";
 
         try {
-            // Fetch the student data from the database (StudentID, FirstName, LastName, Nickname)
+
             String[][] students = dbManager.getTeacherStudents(studentTableName);
 
             if (students != null) {
                 for (String[] student : students) {
-                    // Assuming student[0] is StudentID (index 0), student[1] is FirstName, student[2] is LastName, student[3] is Nickname
-                    String studentId = student[0];  // Extract StudentID
+
+                    String studentId = student[0];
                     System.out.println("Type" + student[3]);
-                    // Add each student ID to the table model (can add other fields if needed)
+
                     tableModel.addRow(new Object[]{studentId, student[3]});
                 }
             }
@@ -197,8 +183,6 @@ public class TeacherPeriodView extends JPanel {
             JOptionPane.showMessageDialog(frame, "Error fetching students: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
 
-
-        // Button setup
         addButton.setFont(new Font("Georgia", Font.PLAIN, 12));
         addButton.setBounds(55, 240, 145, 30);
         add(addButton);
@@ -216,44 +200,39 @@ public class TeacherPeriodView extends JPanel {
         removeButton.setVisible(false);
         add(removeButton);
 
-        // List selection listener for the table to handle row selection
         studentTable.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 if (studentTable.getSelectedRow() == -1) {
-                    // No row selected: Show Add and Import buttons
+
                     addButton.setVisible(true);
                     importButton.setVisible(true);
                     editButton.setVisible(false);
                     removeButton.setVisible(false);
                 } else {
-                    // Row selected: Show Edit and Remove buttons
+
                     addButton.setVisible(false);
                     importButton.setVisible(false);
                     infoButton.setVisible(true);
                     removeButton.setVisible(true);
 
-                    // Get the selected row's Student ID (first column)
                     int selectedRow = studentTable.getSelectedRow();
-                    String studentId = (String) studentTable.getValueAt(selectedRow, 0);  // 0 is the index of the "Student ID" column
+                    String studentId = (String) studentTable.getValueAt(selectedRow, 0);
 
-                    // Remove the previous action listener (if there was one)
                     for (ActionListener al : infoButton.getActionListeners()) {
                         infoButton.removeActionListener(al);
                     }
 
-                    // Add a new action listener to the infoButton
                     infoButton.addActionListener(new ActionListener() {
                         @Override
                         public void actionPerformed(ActionEvent e) {
-                            // Pass the studentId to the infoButtonPopUp method
+
                             infoButtonPopUp(studentId, studentTableName);
-                            studentTable.clearSelection(); // Unselect the row
+                            studentTable.clearSelection();
                         }
                     });
                 }
             }
         });
-
 
         addButton.addActionListener(new ActionListener() {
             @Override
@@ -263,19 +242,16 @@ public class TeacherPeriodView extends JPanel {
                 teacherName = teacherName.replaceAll("^(Mr\\.\\s*|Ms\\.\\s*|Mrs\\.\\s*)", "").trim();
                 String mainTable = teacherName + "_" + period + "_Students";
 
-                // Show an input dialog to get the Student ID, First Name, Last Name, and Nickname
                 JPanel panel = new JPanel();
                 panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
-                // Create a font for the components
                 Font georgiaFont = new Font("Georgia", Font.PLAIN, 12);
-                Font boldGeorgiaFont = new Font("Georgia", Font.BOLD, 12);  // For bold text
+                Font boldGeorgiaFont = new Font("Georgia", Font.BOLD, 12);
 
-                // Create and set font for the labels and text fields
                 JLabel studentIdLabel = new JLabel("Enter Student ID:");
-                studentIdLabel.setFont(boldGeorgiaFont);  // Bold for label
+                studentIdLabel.setFont(boldGeorgiaFont);
                 JTextField studentIdField = new JTextField(20);
-                studentIdField.setFont(georgiaFont);  // Plain font for text field
+                studentIdField.setFont(georgiaFont);
 
                 JLabel firstNameLabel = new JLabel("Enter First Name:");
                 firstNameLabel.setFont(boldGeorgiaFont);
@@ -292,7 +268,6 @@ public class TeacherPeriodView extends JPanel {
                 JTextField nicknameField = new JTextField(20);
                 nicknameField.setFont(georgiaFont);
 
-                // Add components to the panel
                 panel.add(studentIdLabel);
                 panel.add(studentIdField);
                 panel.add(firstNameLabel);
@@ -302,47 +277,42 @@ public class TeacherPeriodView extends JPanel {
                 panel.add(nicknameLabel);
                 panel.add(nicknameField);
 
-                // Show the dialog box with the panel
                 int option = JOptionPane.showConfirmDialog(frame, panel, "Add Student", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
                 if (option == JOptionPane.OK_OPTION) {
-                    // Retrieve the input values
+
                     String studentId = studentIdField.getText().trim();
                     String firstName = firstNameField.getText().trim();
                     String lastName = lastNameField.getText().trim();
                     String nickname = nicknameField.getText().trim();
 
-                    // Check if the input is valid (not null or empty)
                     if (!studentId.isEmpty() && !firstName.isEmpty() && !lastName.isEmpty() && !nickname.isEmpty()) {
                         try {
-                            // Check if the student already exists in the table
+
                             Boolean doubleStudent = dbManager.checkValueInTable(mainTable, studentId);
                             if (!doubleStudent) {
-                                // Add the student ID to the table model (GUI table)
+
                                 tableModel.addRow(new Object[]{studentId, nickname});
 
-                                // Call the method to update the database with the student details
                                 try {
                                     dbManager.updateTeacherStudents(mainTable, studentId, firstName, lastName, nickname);
                                 } catch (SQLException ex) {
                                     throw new RuntimeException("Error inserting student into database", ex);
                                 }
                             } else {
-                                // Show an error message if the student already exists
+
                                 JOptionPane.showMessageDialog(frame, "Student ID Already Exists in Table", "Error", JOptionPane.ERROR_MESSAGE);
                             }
                         } catch (SQLException ex) {
                             throw new RuntimeException("Error checking student in database", ex);
                         }
                     } else {
-                        // Show an error message if any of the fields are empty
+
                         JOptionPane.showMessageDialog(frame, "All fields must be filled.", "Error", JOptionPane.ERROR_MESSAGE);
                     }
                 }
             }
         });
-
-
 
         importButton.addActionListener(new ActionListener() {
             @Override
@@ -371,7 +341,7 @@ public class TeacherPeriodView extends JPanel {
                 if (selectedRow != -1) {
                     String studentId = studentTable.getValueAt(selectedRow,0).toString().trim();
                     tableModel.removeRow(selectedRow);
-                    toggleButtonVisibility(false); // Show Add/Import buttons again
+                    toggleButtonVisibility(false);
                     String[] temp2 = dbManager.getTeacher(userName);
                     String teacherName = temp2[1];
                     teacherName = teacherName.replaceAll("^(Mr\\.\\s*|Ms\\.\\s*|Mrs\\.\\s*)", "").trim();
@@ -385,9 +355,6 @@ public class TeacherPeriodView extends JPanel {
             }
         });
 
-
-
-        // Deselect rows when clicking anywhere outside the table
         addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
                 if (!studentTable.getBounds().contains(evt.getPoint())) {
@@ -400,7 +367,6 @@ public class TeacherPeriodView extends JPanel {
             }
         });
 
-        // Prefill data from the database
         String[] temp3 = dbManager.getTeacher(userName);
         String teacherName3 = temp3[1];
         teacherName3 = teacherName3.replaceAll("^(Mr\\.\\s*|Ms\\.\\s*|Mrs\\.\\s*)", "").trim();
@@ -414,35 +380,31 @@ public class TeacherPeriodView extends JPanel {
             classNameField.setCaretPosition(0);
         }
 
-        // Add listeners to update the database
         addUpdateListeners(classNameField, startTimeField, endTimeField, mainTable);
     }
 
     private void infoButtonPopUp(String studentId, String studentTableName) {
         try {
-            // Fetch the student data from the database (StudentID, FirstName, LastName, Nickname)
+
             String[][] students = dbManager.getTeacherStudents(studentTableName);
 
             if (students != null) {
                 for (String[] student : students) {
-                    // Assuming student[0] is StudentID, student[1] is FirstName, student[2] is LastName, student[3] is Nickname
-                    String studentId1 = student[0];  // Extract StudentID
-                    if (studentId1.equals(studentId)) {
-                        // If the Student ID matches, create the message for the popup
-                        String lastName = student[2];  // LastName at index 2
-                        String firstName = student[1]; // FirstName at index 1
-                        String nickname = student[3];  // Nickname at index 3
 
-                        // Create the formatted message using JTextPane and StyledDocument
+                    String studentId1 = student[0];
+                    if (studentId1.equals(studentId)) {
+
+                        String lastName = student[2];
+                        String firstName = student[1];
+                        String nickname = student[3];
+
                         JTextPane textPane = new JTextPane();
                         textPane.setContentType("text/plain");
                         textPane.setEditable(false);
-                        textPane.setFont(new Font("Georgia", Font.PLAIN, 12)); // Set Georgia font for the entire text
+                        textPane.setFont(new Font("Georgia", Font.PLAIN, 12));
 
-                        // Create a styled document to apply different styles to different parts
                         StyledDocument doc = textPane.getStyledDocument();
 
-                        // Define the styles
                         SimpleAttributeSet boldStyle = new SimpleAttributeSet();
                         StyleConstants.setBold(boldStyle, true);
                         StyleConstants.setFontFamily(boldStyle, "Georgia");
@@ -451,35 +413,29 @@ public class TeacherPeriodView extends JPanel {
                         StyleConstants.setBold(regularStyle, false);
                         StyleConstants.setFontFamily(regularStyle, "Georgia");
 
-                        // Insert the message parts with different styles
-                        doc.insertString(doc.getLength(), "ID: ", boldStyle);  // Bold "ID:"
-                        doc.insertString(doc.getLength(), studentId1 + "\n", regularStyle); // Normal Student ID
+                        doc.insertString(doc.getLength(), "ID: ", boldStyle);
+                        doc.insertString(doc.getLength(), studentId1 + "\n", regularStyle);
 
-                        doc.insertString(doc.getLength(), "Full Name: ", boldStyle);  // Bold "Full Name:"
-                        doc.insertString(doc.getLength(), lastName + ", " + firstName + "\n", regularStyle); // Normal Full Name
+                        doc.insertString(doc.getLength(), "Full Name: ", boldStyle);
+                        doc.insertString(doc.getLength(), lastName + ", " + firstName + "\n", regularStyle);
 
-                        doc.insertString(doc.getLength(), "Nickname: ", boldStyle);  // Bold "Nickname:"
-                        doc.insertString(doc.getLength(), nickname, regularStyle); // Normal Nickname
+                        doc.insertString(doc.getLength(), "Nickname: ", boldStyle);
+                        doc.insertString(doc.getLength(), nickname, regularStyle);
 
-                        // Show the popup with the student details in the JTextPane
                         JOptionPane.showMessageDialog(frame, new JScrollPane(textPane), "Student Info", JOptionPane.INFORMATION_MESSAGE);
 
-                        // Deselect the row after showing the popup
                         studentTable.clearSelection();
 
-                        return; // Exit after displaying the popup
+                        return;
                     }
                 }
-                // If no matching student is found
+
                 JOptionPane.showMessageDialog(frame, "Student ID not found.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException | BadLocationException ex) {
             JOptionPane.showMessageDialog(frame, "Error fetching students: " + ex.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
-
 
     private void toggleButtonVisibility(boolean rowSelected) {
         if (rowSelected) {
@@ -521,15 +477,14 @@ public class TeacherPeriodView extends JPanel {
                 String startTime = startTimeField.getText().trim();
                 String endTime = endTimeField.getText().trim();
 
-                // Check if both start time and end time are valid (not just empty or default format "  :  ")
                 if (!startTime.isEmpty() && !startTime.equals("  :  ") && !endTime.isEmpty() && !endTime.equals("  :  ")) {
-                    // Compare times if both are valid
+
                     if (isStartTimeAfterEndTime(startTime, endTime)) {
-                        // Show error popup if start time is after end time
+
                         JOptionPane.showMessageDialog(null, "Start Time cannot be after End Time.", "Time Error", JOptionPane.ERROR_MESSAGE);
-                        startTimeField.setText(""); // Clear the start time field
+                        startTimeField.setText("");
                     } else {
-                        // Call the update method only if both fields have valid values
+
                         dbManager.updateTeacherMain(tableName, classNameField.getText(), startTime, endTime);
                     }
                 } else {
@@ -544,15 +499,14 @@ public class TeacherPeriodView extends JPanel {
                 String startTime = startTimeField.getText().trim();
                 String endTime = endTimeField.getText().trim();
 
-                // Check if both start time and end time are valid (not just empty or default format "  :  ")
                 if (!startTime.isEmpty() && !startTime.equals("  :  ") && !endTime.isEmpty() && !endTime.equals("  :  ")) {
-                    // Compare times if both are valid
+
                     if (isStartTimeAfterEndTime(startTime, endTime)) {
-                        // Show error popup if start time is after end time
+
                         JOptionPane.showMessageDialog(null, "Start Time cannot be after End Time, Values Have Been Erased Try Again", "Time Error", JOptionPane.ERROR_MESSAGE);
-                        endTimeField.setText(""); // Clear the end time field
+                        endTimeField.setText("");
                     } else {
-                        // Call the update method only if both fields have valid values
+
                         dbManager.updateTeacherMain(tableName, classNameField.getText(), startTime, endTime);
                     }
                 } else {
@@ -562,18 +516,16 @@ public class TeacherPeriodView extends JPanel {
         });
     }
 
-    // Helper method to compare startTime and endTime
     private boolean isStartTimeAfterEndTime(String startTime, String endTime) {
         try {
-            // Parse the times into LocalTime objects
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm"); // Assuming time format is HH:mm
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
             LocalTime start = LocalTime.parse(startTime, formatter);
             LocalTime end = LocalTime.parse(endTime, formatter);
 
-            // Return true if startTime is after endTime, otherwise false
             return start.isAfter(end);
         } catch (Exception e) {
-            // If there's an error parsing the time, return false
+
             return false;
         }
     }
@@ -583,7 +535,6 @@ public class TeacherPeriodView extends JPanel {
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setDialogTitle("Select a CSV File");
 
-        // Set file filter to allow only .csv files
         fileChooser.setFileFilter(new javax.swing.filechooser.FileFilter() {
             @Override
             public boolean accept(File file) {
@@ -607,7 +558,7 @@ public class TeacherPeriodView extends JPanel {
                     String line;
                     while ((line = reader.readLine()) != null) {
                         String[] values = line.split(",");
-                        rows.add(Arrays.asList(values)); // Each row is a list of values
+                        rows.add(Arrays.asList(values));
                     }
 
                     List<Integer> selectedColumns = showColumnSelectionDialog(rows);
@@ -626,8 +577,8 @@ public class TeacherPeriodView extends JPanel {
                             }
                             return tempStudents;
                         } else {
-                            // If preview was canceled, restart the column selection dialog
-                            return importStudents(); // Recursively call to restart the column selection
+
+                            return importStudents();
                         }
                     }
 
@@ -649,12 +600,11 @@ public class TeacherPeriodView extends JPanel {
         for (int i = 0; i < maxRows; i++) {
             List<String> row = rows.get(i);
             String[] previewRow = new String[2];
-            previewRow[0] = row.size() > 0 ? row.get(0) : "";  // First column (Student ID)
-            previewRow[1] = row.size() > 3 ? row.get(3) : "";  // Fourth column (Nickname)
+            previewRow[0] = row.size() > 0 ? row.get(0) : "";
+            previewRow[1] = row.size() > 3 ? row.get(3) : "";
             previewData.add(previewRow);
         }
 
-        // Add "..." for the 4th row if there are more than 3 rows
         if (rows.size() > 3) {
             String[] previewRow = new String[2];
             previewRow[0] = "...";
@@ -662,13 +612,11 @@ public class TeacherPeriodView extends JPanel {
             previewData.add(previewRow);
         }
 
-        // Create the table for preview with Georgia font
         String[] columnHeaders = {"Student ID", "Nickname"};
         JTable previewTable = new JTable(previewData.toArray(new String[0][]), columnHeaders);
-        previewTable.setPreferredScrollableViewportSize(new java.awt.Dimension(400, 64)); // Fit the table height to the rows
+        previewTable.setPreferredScrollableViewportSize(new java.awt.Dimension(400, 64));
         previewTable.setFillsViewportHeight(true);
 
-        // Center the content in the table
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         previewTable.setDefaultRenderer(Object.class, centerRenderer);
@@ -677,22 +625,19 @@ public class TeacherPeriodView extends JPanel {
 
         JScrollPane scrollPane = new JScrollPane(previewTable);
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Arrange components vertically
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.add(scrollPane);
 
-        // Add 10 units of space between the table and the disclaimer
         panel.add(Box.createVerticalStrut(10));
 
-        // Add the red disclaimer at the bottom with Georgia font
         JLabel disclaimer = new JLabel("<html><font color='red' face='Georgia'>Disclaimer: First Name and Last Name can be found using the 'Info' button.</font></html>");
         panel.add(disclaimer);
 
-        // Show the preview dialog with the table and disclaimer
         int option = JOptionPane.showConfirmDialog(null, panel, "Preview the Data", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (option == JOptionPane.CANCEL_OPTION) {
-            // If canceled (or 'x' pressed), show column selection again
-            return false; // Indicating preview was canceled
+
+            return false;
         }
 
         return option == JOptionPane.OK_OPTION;
@@ -707,14 +652,13 @@ public class TeacherPeriodView extends JPanel {
         }
 
         JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); // Arrange components vertically
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         for (JCheckBox checkBox : checkBoxes) {
             panel.add(checkBox);
         }
 
         List<Integer> selectedColumns = null;
 
-        // Keep prompting the user until they select exactly 4 columns
         while (selectedColumns == null || selectedColumns.size() != 4) {
             int option = JOptionPane.showConfirmDialog(null, panel, "Select Exactly 4 Columns to Import", JOptionPane.OK_CANCEL_OPTION);
 
@@ -726,12 +670,11 @@ public class TeacherPeriodView extends JPanel {
                     }
                 }
 
-                // Check if exactly 4 columns are selected
                 if (selectedColumns.size() != 4) {
                     JOptionPane.showMessageDialog(null, "Please select exactly 4 columns.", "Invalid Selection", JOptionPane.ERROR_MESSAGE);
                 }
             } else {
-                // User pressed cancel, return null
+
                 return null;
             }
         }
