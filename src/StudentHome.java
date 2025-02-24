@@ -84,7 +84,7 @@ public class StudentHome extends JPanel {
             this.add(messageLabel, BorderLayout.CENTER);
         } else {
 
-            String url = "jdbc:mysql://192.168.1.14/qclient1";
+            String url = "jdbc:mysql://10.195.75.116/qclient1";
             String user = "root";
             String password = "password";
             String tableName = userName + "_waitTime";
@@ -709,6 +709,7 @@ public class StudentHome extends JPanel {
                 panel.add(consoleScrollPane, gbc);
                 consoleErrorArea.setForeground(Color.RED);
                 consoleErrorArea.setEnabled(false);
+                consoleErrorArea.setEditable(false);
                 consoleErrorArea.setBackground(Color.lightGray);
 
                 questionSummaryArea.setText("You Will Lose Inputted Data Attempting to Add Question Without Question Summary");
@@ -755,6 +756,7 @@ public class StudentHome extends JPanel {
                         boolean isEmpty = questionSummaryArea.getText().trim().isEmpty();
                         uploadButton.setEnabled(!isEmpty);
                         consoleErrorArea.setEnabled(!isEmpty);
+                        consoleErrorArea.setEditable(true);
 
                         if (isEmpty) {
                             questionSummaryArea.setForeground(Color.RED);
