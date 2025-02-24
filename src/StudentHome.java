@@ -851,8 +851,11 @@ public class StudentHome extends JPanel {
 
                         questionSummaryArea.setText(questionSummary);
                         consoleErrorArea.setText(consoleErrorOutput);
-
                         return;
+                    }
+                    else{
+                        addQuestionButton.setVisible(false);
+                        removeQuestionButton.setVisible(true);
                     }
 
                     try {
@@ -963,8 +966,6 @@ public class StudentHome extends JPanel {
                         }
                     }
                 }
-                addQuestionButton.setVisible(false);
-                removeQuestionButton.setVisible(true);
             }
         });
 
