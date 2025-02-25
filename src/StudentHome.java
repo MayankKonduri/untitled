@@ -64,6 +64,7 @@ public class StudentHome extends JPanel {
     private volatile boolean running = true;
     public boolean successful_1;
     String className;
+    private int position;
 
     public StudentHome(JFrame frame, String userName) throws SQLException {
         this.frame = frame;
@@ -73,7 +74,6 @@ public class StudentHome extends JPanel {
         this.setLayout(new BorderLayout());
 
         Font georgiaFont = new Font("Georgia", Font.BOLD, 16);
-
         if (databaseManager.checkTeacherExists(userName)) {
             frame.setSize(400, 225);
             System.out.println("Already a Teacher");
@@ -436,7 +436,7 @@ public class StudentHome extends JPanel {
                         periodNumber = extractNumberFromTableName(result);
                         questionTableName = result.replace("_main", "_questions");
 
-                        int position = databaseManager.getQuestionPosition(questionTableName, userName);
+                        position = databaseManager.getQuestionPosition(questionTableName, userName);
                         positionLabel.setText("Position: " + position);
                         if(position==-1)
                         {
@@ -972,65 +972,104 @@ public class StudentHome extends JPanel {
         removeQuestionButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                ArrayList<String[]> results = null;
+                int position1 = 0;
+                try {
+                    results = databaseManager.checkNameInStudentsTables(userName);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
+                if (results.isEmpty()) {
+                    System.out.println("No records found for the student.");
+                } else {
+                    for (int i = 0; i < results.size(); i++) {
+                        try {
 
-                String currentQuestion = (String) questionTable.getValueAt(0, 0);
-                if ("No Active Question".equals(currentQuestion)) {
+                            LocalTime startTime = LocalTime.parse((String) results.get(i)[2]);
+                            LocalTime endTime = LocalTime.parse((String) results.get(i)[3]);
 
+                            if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                                String result = (String) results.get(i)[0];
+                                String waitTime = (String) results.get(i)[4];
+                                waitTimeOfClass = waitTime;
+                                periodNumber = extractNumberFromTableName(result);
+                                questionTableName = result.replace("_main", "_questions");
+
+                                position1 = databaseManager.getQuestionPosition(questionTableName, userName);
+                            }
+                        }catch (DateTimeParseException e1) {
+                            System.out.println("Invalid time format in results: " + e1.getMessage());
+                        }
+                    }
+                }
+                if(position1 == 1) {
                     JPanel panel = new JPanel();
-                    JLabel label = new JLabel("No Question to Remove.", JLabel.CENTER);
+                    JLabel label = new JLabel("Teacher is Reviewing Your Question Right Now, Cannot Remove Question", JLabel.CENTER);
                     label.setFont(new Font("Georgia", Font.BOLD, 14));
                     panel.add(label);
 
                     JOptionPane.showMessageDialog(null, panel, "Error", JOptionPane.ERROR_MESSAGE);
-                } else {
-
-                    ArrayList<String[]> results2 = null;
-                    try {
-                        results2 = databaseManager.checkNameInStudentsTables(userName);
-                    } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
-                    }
-                    if (results2.isEmpty()) {
-                        System.out.println("No records found for the student.");
-                    }
-                    for (int i = 0; i < results2.size(); i++) {
-                        try {
-
-                            LocalTime startTime = LocalTime.parse((String) results2.get(i)[2]);
-                            LocalTime endTime = LocalTime.parse((String) results2.get(i)[3]);
-
-                            if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
-                                String result = (String) results2.get(i)[0];
-
-                                if (result.matches(".*_\\d+_main")) {
-                                    result = result.replace("_main", "_questions");
-                                }
-
-                                databaseManager.updateQuestionsTable(userName,result, "Student Took Back Question");
-                                positionLabel.setText("Position: N/A");
-                            }
-                        } catch (DateTimeParseException e1) {
-
-                            System.out.println("Invalid time format in results: " + e1.getMessage());
-                        }
-                    }
-
-                    System.out.println("Remove Question button clicked");
-
-                    questionTable.setValueAt("No Active Question", 0, 0);
-
-                    JPanel panel = new JPanel();
-                    JLabel label = new JLabel("Question has been removed.", JLabel.CENTER);
-                    label.setFont(new Font("Georgia", Font.BOLD, 14));
-                    panel.add(label);
-
-                    JOptionPane.showMessageDialog(null, panel, "Success", JOptionPane.INFORMATION_MESSAGE);
-
                 }
-                addQuestionButton.setVisible(true);
-                removeQuestionButton.setVisible(false);
-                startCountdown(waitTimeLabel, Integer.parseInt(waitTimeOfClass), waitTimePanel, addQuestionButton);
-                addQuestionButton.setEnabled(false);
+                else{
+                    String currentQuestion = (String) questionTable.getValueAt(0, 0);
+                    if ("No Active Question".equals(currentQuestion)) {
+
+                        JPanel panel = new JPanel();
+                        JLabel label = new JLabel("No Question to Remove.", JLabel.CENTER);
+                        label.setFont(new Font("Georgia", Font.BOLD, 14));
+                        panel.add(label);
+
+                        JOptionPane.showMessageDialog(null, panel, "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+
+                        ArrayList<String[]> results2 = null;
+                        try {
+                            results2 = databaseManager.checkNameInStudentsTables(userName);
+                        } catch (SQLException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        if (results2.isEmpty()) {
+                            System.out.println("No records found for the student.");
+                        }
+                        for (int i = 0; i < results2.size(); i++) {
+                            try {
+
+                                LocalTime startTime = LocalTime.parse((String) results2.get(i)[2]);
+                                LocalTime endTime = LocalTime.parse((String) results2.get(i)[3]);
+
+                                if (LocalTime.now().isAfter(startTime) && LocalTime.now().isBefore(endTime)) {
+                                    String result = (String) results2.get(i)[0];
+
+                                    if (result.matches(".*_\\d+_main")) {
+                                        result = result.replace("_main", "_questions");
+                                    }
+
+                                    databaseManager.updateQuestionsTable(userName, result, "Student Took Back Question");
+                                    positionLabel.setText("Position: N/A");
+                                }
+                            } catch (DateTimeParseException e1) {
+
+                                System.out.println("Invalid time format in results: " + e1.getMessage());
+                            }
+                        }
+
+                        System.out.println("Remove Question button clicked");
+
+                        questionTable.setValueAt("No Active Question", 0, 0);
+
+                        JPanel panel = new JPanel();
+                        JLabel label = new JLabel("Question has been removed.", JLabel.CENTER);
+                        System.out.println("Clicked" + position);
+                        label.setFont(new Font("Georgia", Font.BOLD, 14));
+                        panel.add(label);
+
+                        JOptionPane.showMessageDialog(null, panel, "Success", JOptionPane.INFORMATION_MESSAGE);
+                        addQuestionButton.setVisible(true);
+                        removeQuestionButton.setVisible(false);
+                        startCountdown(waitTimeLabel, Integer.parseInt(waitTimeOfClass), waitTimePanel, addQuestionButton);
+                        addQuestionButton.setEnabled(false);
+                    }
+                }
             }
         });
 
